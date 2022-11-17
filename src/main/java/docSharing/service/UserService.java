@@ -1,6 +1,6 @@
 package docSharing.service;
 
-import docSharing.Entities.User;
+import docSharing.entities.User;
 import docSharing.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
