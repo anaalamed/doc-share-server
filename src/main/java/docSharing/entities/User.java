@@ -1,4 +1,4 @@
-package docSharing.Entities;
+package docSharing.entities;
 
 import javax.persistence.*;
 import java.util.Objects;
