@@ -11,10 +11,10 @@ public class MetaData {
     String title;
     final User createdBy;
 
-    public MetaData(File parent, LocalDate created, LocalDate lastUpdated, String title, User createdBy) {
+    public MetaData(File parent, String title, User createdBy) {
         this.parent = parent;
-        this.created = created;
-        this.lastUpdated = lastUpdated;
+        this.created = LocalDate.now();
+        this.lastUpdated =  LocalDate.now();
         this.title = title;
         this.createdBy = createdBy;
     }

@@ -38,6 +38,6 @@ public class File {
         owners=new ArrayList<>();
         owners.add(user);
         authorized.put(Permission.OWNER,owners);
-        metaData = new MetaData (parent,LocalDate.now(),LocalDate.now(),title,user);
+        metaData = new MetaData (parent,title,user);
     }
 }
