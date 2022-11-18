@@ -5,13 +5,13 @@ import docSharing.entities.User;
 import java.time.LocalDate;
 
 public class MetaData {
-    Directory parent;
+    File parent;
     final LocalDate created;
     LocalDate lastUpdated;
     String title;
     final User createdBy;
 
-    public MetaData(Directory parent, LocalDate created, LocalDate lastUpdated, String title, User createdBy) {
+    public MetaData(File parent, LocalDate created, LocalDate lastUpdated, String title, User createdBy) {
         this.parent = parent;
         this.created = created;
         this.lastUpdated = lastUpdated;
@@ -19,7 +19,7 @@ public class MetaData {
         this.createdBy = createdBy;
     }
 
-    public void setParent(Directory parent) {
+    public void setParent(Folder parent) {
         this.parent = parent;
     }
 

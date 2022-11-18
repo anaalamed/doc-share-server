@@ -1,32 +1,40 @@
 package docSharing.entities.document;
 
+import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
 
 import java.time.LocalDate;
 
 public class UpdateLog {
-    final String updateContent;
-    final int position;
-    final LocalDate timestamp;
-    final User user;
+    private UpdateRequest updateRequest;
+    private LocalDate timestamp;
 
-
-    public UpdateLog(String updateContent, int position, LocalDate timestamp, User user) {
-        this.updateContent = updateContent;
-        this.position = position;
+    public UpdateLog(UpdateRequest updateRequest, LocalDate timestamp) {
+        this.updateRequest = updateRequest;
         this.timestamp = timestamp;
-        this.user = user;
+    }
+
+    public UpdateRequest getUpdateRequest() {
+        return updateRequest;
+    }
+
+    public LocalDate getTimestamp() {
+        return timestamp;
+    }
+
+    public void setUpdateRequest(UpdateRequest updateRequest) {
+        this.updateRequest = updateRequest;
+    }
+
+    public void setTimestamp(LocalDate timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override
     public String toString() {
         return "UpdateLog{" +
-                "updateContent='" + updateContent + '\'' +
-                ", position=" + position +
+                "updateRequest=" + updateRequest +
                 ", timestamp=" + timestamp +
-                ", user=" + user +
                 '}';
     }
-
-
 }

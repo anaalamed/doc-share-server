@@ -48,4 +48,14 @@ public class UpdateRequest {
         DELETE_RANGE,
         APPEND_RANGE
     }
+
+    @Override
+    public String toString() {
+        return "UpdateRequest{" +
+                "user='" + user + '\'' +
+                ", type=" + type +
+                ", content='" + content + '\'' +
+                ", position=" + position +
+                '}';
+    }
 }
