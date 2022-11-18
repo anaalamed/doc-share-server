@@ -1,7 +1,5 @@
 package docSharing.service;
 
-import docSharing.controller.request.UserRequest;
-import docSharing.controller.response.TokenResponse;
 import docSharing.entities.User;
 import docSharing.repository.UserRepository;
 import docSharing.utils.Utils;
@@ -19,7 +17,7 @@ public class AuthService {
     private UserRepository userRepository;
     static HashMap<String, String> mapUserTokens = new HashMap<>();
 
-    private static Logger logger = LogManager.getLogger(AuthService.class.getName());
+    private static final Logger logger = LogManager.getLogger(AuthService.class.getName());
 
 
     public User createUser(User user) throws SQLDataException {

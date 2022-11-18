@@ -1,9 +1,9 @@
 package docSharing.controller.response;
 
 public class BaseResponse<T> {
-    private boolean success;
-    private String message;
-    private T data;
+    private final boolean success;
+    private final String message;
+    private final T data;
 
     private BaseResponse(boolean success, String message, T data) {
         this.success = success;
