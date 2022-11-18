@@ -5,11 +5,11 @@ import docSharing.entities.User;
 import java.time.LocalDate;
 
 public class MetaData {
-    File parent;
-    final LocalDate created;
-    LocalDate lastUpdated;
-    String title;
-    final User createdBy;
+    private File parent;
+    private final LocalDate created;
+    private LocalDate lastUpdated;
+    private String title;
+    private final User createdBy;
 
     public MetaData(File parent, String title, User createdBy) {
         this.parent = parent;
