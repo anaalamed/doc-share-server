@@ -8,18 +8,13 @@ import java.util.Objects;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private final int id;
+    private int id;
     private String name;
     @Column(unique = true)
     private String email;
     private String password;
 
     public User() {
-        this.id=0;
-    }
-
-    public User(int id) {
-        this.id = id;
     }
 
     public int getId() {

@@ -7,8 +7,8 @@ public class Document extends File{
 
     private Content content;
 
-    public Document(int id,User user,File parent,String title,String url) {
-        super(id, user,parent,title,url);
+    public Document(User user,File parent,String title,String url) {
+        super(user,parent,title,url);
         this.content =new Content("");
     }
 

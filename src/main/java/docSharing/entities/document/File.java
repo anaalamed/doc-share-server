@@ -14,30 +14,23 @@ import java.util.List;
 public abstract class File {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private final int id;
+    private int id;
     @Column(unique=true)
     private String url;
     private HashMap<Permission, List<User>> authorized;
     private MetaData metaData;
     private final List<UpdateLog> updateLogs;
 
-    private List<User> owners;
-    private List<User> editors;
-    private List<User> viewers;
+    private File(){
+        this.authorized= new HashMap<>();
+        this.updateLogs= new ArrayList<>();
 
-    //empty constructor
-    public File(){
-        this.id=0;
-        this.updateLogs=null;
     }
-    public File(int id, User user, File parent, String title, String url) {
-        this.id = id;
+    public File(User user, File parent, String title, String url) {
+        this();
         this.url=url;
-        updateLogs= new ArrayList<>();
-        authorized= new HashMap<>();
-        owners=new ArrayList<>();
-        owners.add(user);
-        authorized.put(Permission.OWNER,owners);
         metaData = new MetaData (parent,title,user);
+        authorized.put(Permission.OWNER,new ArrayList<>());
+        authorized.get(Permission.OWNER).add(user);
     }
 }

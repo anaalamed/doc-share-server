@@ -10,7 +10,7 @@ import java.util.List;
 public class Folder extends File{
 
     public Folder(int id,User user,File parent,String title,String url) {
-        super(id, user,parent,title,url);
+        super(user,parent,title,url);
     }
 
 
