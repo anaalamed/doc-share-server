@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name="file")
-public class File {
+public abstract class File {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private final int id;
