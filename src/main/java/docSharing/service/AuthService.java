@@ -10,15 +10,19 @@ import org.springframework.stereotype.Service;
 
 import java.sql.SQLDataException;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Service
 public class AuthService {
     @Autowired
-    private UserRepository userRepository;
-    static HashMap<String, String> mapUserTokens = new HashMap<>();
+    private final UserRepository userRepository;
+    static HashMap<String, User> mapUserTokens = new HashMap<>();
 
     private static final Logger logger = LogManager.getLogger(AuthService.class.getName());
 
+    public AuthService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public User createUser(User user) throws SQLDataException {
         logger.info("in createUser");
@@ -30,33 +34,33 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    public String login(User user) {
+    public Optional<String> login(User user) {
+        logger.info("in login");
 
         User userByEmail = userRepository.getByEmail(user.getEmail());
-        logger.debug(userByEmail);
 
         if (userByEmail == null) {
-            logger.debug("User not found");
-            throw new NullPointerException("User not found");
+            return Optional.empty();
         }
 
         if (userByEmail.getPassword().equals(user.getPassword())) {
-            String token = Utils.generateUniqueToken();
-            logger.debug(token);
-            mapUserTokens.put(token, String.valueOf(userByEmail.getId()));
+            Optional<String> token = Optional.of(Utils.generateUniqueToken()) ;
+            mapUserTokens.put(token.get(), userByEmail);
             return token;
         }
 
-        return null;
+        return Optional.empty();
     }
 
-//    public Integer getUserIdByToken(String token)  {
-//        String id = mapUserTokens.get(token);
-//
-//        if (id == null) {
-//            throw new NullPointerException("user not authorized");
-//        }
-//        return Integer.valueOf(id);
-//    }
+    public Optional<Integer> getUserIdByToken(String email, String token)  {
+        User user = mapUserTokens.get(token);
+
+        if (user == null || !user.getEmail().equals(email)) {
+            return Optional.empty();
+        }
+        return Optional.of(user.getId());
+    }
+
+
 
 }

@@ -3,6 +3,8 @@ package docSharing.utils;
 import java.util.regex.Pattern;
 
 public class Validate {
+    public enum Field {NAME, EMAIL, PASSWORD}
+    public Field field;
 
     public static boolean isValidEmail(String email) {
         String regexPattern = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
@@ -34,10 +36,21 @@ public class Validate {
                 .matches();
     }
 
-//    public static boolean validateUserFields(String email, String name, String password) {
-//        return validateEmail(email) && validateName(name) && validatePassword(password);
+
+//    public static boolean validateUserFields(Field field, String variable) {
+//        switch (field) {
+//            case NAME:
+//                return isValidName(variable);
+//            case EMAIL:
+//                return isValidEmail(variable);
+//            case PASSWORD:
+//                return isValidPassword(variable);
+//            default:
+//                return false;
+//        }
 //    }
-//
+
+
 //    public static boolean validateUserFields(String email, String password) {
 //        return validateEmail(email) && validatePassword(password);
 //    }

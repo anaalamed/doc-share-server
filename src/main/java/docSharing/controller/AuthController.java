@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLDataException;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -42,8 +43,6 @@ public class AuthController {
             return ResponseEntity.ok(BaseResponse.success(authService.createUser(user)));
         } catch (SQLDataException e) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Email already exists"));
-        } catch (NullPointerException e) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("User not found"));
         }
     }
 
@@ -58,13 +57,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 
-        String token = authService.login(user);
-        if (token == null) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Email or password doesn't match. Login failed"));
+        Optional<String> token = authService.login(user);
+        if (!token.isPresent()) {
+            logger.warn("User " + user.getEmail() + " failed to log in");
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Wrong Email or Password. Login failed"));
         }
 
         logger.info("User with email" + user.getEmail() + "logged in");
-        return ResponseEntity.ok(BaseResponse.success(new TokenResponse(token)));
+        return ResponseEntity.ok(BaseResponse.success(new TokenResponse(token.get())));
     }
 
 
