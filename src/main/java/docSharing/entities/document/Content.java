@@ -1,10 +1,12 @@
 package docSharing.entities.document;
 
-public class Content {
-    String content;
+import static java.lang.Math.max;
 
-    public Content(String content) {
-        this.content = content;
+public class Content {
+    private String content;
+
+    public Content() {
+        content = "";
     }
 
     public void setContent(String content) {
@@ -13,5 +15,32 @@ public class Content {
 
     public String getContent() {
         return content;
+    }
+
+    public String append(String content, int start) {
+        this.content = this.content.substring(0, start) + content
+                + this.content.substring(start + content.length());
+
+        return this.content;
+    }
+
+    public String delete(int start, int end) {
+        int count = start - end;
+        this.content = this.content.substring(max(0, start - count)) + this.content.substring(start);
+
+        return this.content;
+    }
+
+    public String appendRange(String content, int start, int end) {
+        this.content = this.content.substring(0, start) + content
+                + this.content.substring(end + 1);
+
+        return this.content;
+    }
+
+    public String deleteRange(int start, int end) {
+        this.content = this.content.substring(0, start) + this.content.substring(end + 1);
+
+        return this.content;
     }
 }
