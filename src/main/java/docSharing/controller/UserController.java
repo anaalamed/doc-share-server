@@ -74,7 +74,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "newEmail")
     public ResponseEntity<BaseResponse<User>> updateEmail(@PathVariable("email") String email, @RequestHeader String token,
                                                           @RequestParam String newEmail){
-        logger.debug("in updateName");
+        logger.debug("in updateEmail");
 
         if (!InputValidation.isValidEmail(newEmail)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
@@ -86,6 +86,7 @@ public class UserController {
         }
 
         Optional<User> updatedUser = userService.updateEmail(id, newEmail);
+        authService.updateTokensMap(email, token, newEmail);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }

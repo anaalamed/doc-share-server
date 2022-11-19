@@ -54,6 +54,8 @@ public class AuthService {
         return Optional.empty();
     }
 
+
+    // ----------------------- help methods ---------------------- //
     public int getTokenByUser(String email, String token)  {
         Optional<Map.Entry<User, String>> userTokenPair = mapUserTokens.entrySet().stream()
                 .filter(row -> row.getKey().getEmail().equals(email))
@@ -68,6 +70,11 @@ public class AuthService {
         return userTokenPair.get().getKey().getId();
     }
 
-
-
+    public void updateTokensMap(String email, String token, String newEmail) {
+        for (User user: mapUserTokens.keySet()) {
+            if (user.getEmail().equals(email) && mapUserTokens.get(user).equals(token)) {
+                user.setEmail(newEmail);
+            }
+        }
+    }
 }
