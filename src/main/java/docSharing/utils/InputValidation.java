@@ -2,7 +2,7 @@ package docSharing.utils;
 
 import java.util.regex.Pattern;
 
-public class Validate {
+public class InputValidation {
     public enum Field {NAME, EMAIL, PASSWORD}
     public Field field;
 

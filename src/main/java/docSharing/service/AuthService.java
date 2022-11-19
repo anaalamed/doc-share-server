@@ -1,5 +1,6 @@
 package docSharing.service;
 
+import docSharing.controller.request.UserRequest;
 import docSharing.entities.User;
 import docSharing.repository.UserRepository;
 import docSharing.utils.Utils;
@@ -10,13 +11,14 @@ import org.springframework.stereotype.Service;
 
 import java.sql.SQLDataException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class AuthService {
     @Autowired
     private final UserRepository userRepository;
-    static HashMap<String, User> mapUserTokens = new HashMap<>();
+    static HashMap<User, String> mapUserTokens = new HashMap<>();
 
     private static final Logger logger = LogManager.getLogger(AuthService.class.getName());
 
@@ -24,41 +26,46 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public User createUser(User user) throws SQLDataException {
+    public User createUser(UserRequest userRequest) throws SQLDataException {
         logger.info("in createUser");
 
-        if(userRepository.findByEmail(user.getEmail())!=null){
-            throw new SQLDataException(String.format("Email %s exists in users table", user.getEmail()));
+        if(userRepository.findByEmail(userRequest.getEmail())!=null){
+            throw new SQLDataException(String.format("Email %s exists in users table", userRequest.getEmail()));
         }
 
-        return userRepository.save(user);
+        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), userRequest.getPassword()));
     }
 
-    public Optional<String> login(User user) {
+    public Optional<String> login(UserRequest userRequest) {
         logger.info("in login");
 
-        User userByEmail = userRepository.findByEmail(user.getEmail());
+        User userByEmail = userRepository.findByEmail(userRequest.getEmail());
 
         if (userByEmail == null) {
             return Optional.empty();
         }
 
-        if (userByEmail.getPassword().equals(user.getPassword())) {
+        if (userByEmail.getPassword().equals(userRequest.getPassword())) {
             Optional<String> token = Optional.of(Utils.generateUniqueToken()) ;
-            mapUserTokens.put(token.get(), userByEmail);
+            mapUserTokens.put(userByEmail, token.get());
             return token;
         }
 
         return Optional.empty();
     }
 
-    public int getUserIdByToken(String email, String token)  {
-        User user = mapUserTokens.get(token);
+    public int getTokenByUser(String email, String token)  {
+        Optional<Map.Entry<User, String>> userTokenPair = mapUserTokens.entrySet().stream()
+                .filter(row -> row.getKey().getEmail().equals(email))
+                .findFirst();
 
-        if (user == null || !user.getEmail().equals(email)) {
+        if (! userTokenPair.isPresent() ||
+            ! userTokenPair.get().getKey().getEmail().equals(email) ||
+            ! userTokenPair.get().getValue().equals(token)) {
             return 0;
         }
-        return user.getId();
+
+        return userTokenPair.get().getKey().getId();
     }
 
 

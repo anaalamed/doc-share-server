@@ -4,7 +4,7 @@ import docSharing.controller.response.BaseResponse;
 import docSharing.entities.User;
 import docSharing.service.AuthService;
 import docSharing.service.UserService;
-import docSharing.utils.Validate;
+import docSharing.utils.InputValidation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,16 +39,16 @@ public class UserController {
     public ResponseEntity<BaseResponse<String>> deleteUser(@RequestParam String email, @RequestHeader String token){
         logger.debug("in deleteUser");
 
-        int id = authService.getUserIdByToken(email, token);
+        int id = authService.getTokenByUser(email, token);
         if (id == 0) {
-            return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
         }
 
         if (userService.deleteUser(id)) {
             return ResponseEntity.ok(BaseResponse.noContent(true, "user " + email + " deleted"));
         }
 
-        return ResponseEntity.ok(BaseResponse.failure("Delete user #" + id + "failed"));
+        return ResponseEntity.badRequest().body(BaseResponse.failure("Delete user #" + id + "failed"));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "name")
@@ -56,19 +56,19 @@ public class UserController {
                                                          @RequestParam String name) {
         logger.debug("in updateName");
 
-        if (!Validate.isValidName(name)) {
+        if (!InputValidation.isValidName(name)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
         }
 
-        int id = authService.getUserIdByToken(email, token);
+        int id = authService.getTokenByUser(email, token);
         logger.debug(id);
         if (id == 0) {
-            return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
         }
 
         Optional<User> updatedUser = userService.updateName(id, name);
         return updatedUser.map(value -> ResponseEntity.ok(BaseResponse.success(value))).
-                orElseGet(() -> ResponseEntity.ok(BaseResponse.failure("User not found")));
+                orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "newEmail")
@@ -76,18 +76,18 @@ public class UserController {
                                                           @RequestParam String newEmail){
         logger.debug("in updateName");
 
-        if (!Validate.isValidEmail(newEmail)) {
+        if (!InputValidation.isValidEmail(newEmail)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
         }
 
-        int id = authService.getUserIdByToken(email, token);
+        int id = authService.getTokenByUser(email, token);
         if (id == 0) {
-            return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
         }
 
         Optional<User> updatedUser = userService.updateEmail(id, newEmail);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
-                .orElseGet(() -> ResponseEntity.ok(BaseResponse.failure("User not found")));
+                .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "password")
@@ -95,18 +95,18 @@ public class UserController {
                                                           @RequestParam String password){
         logger.debug("in updatePassword");
 
-        if (!Validate.isValidPassword(password)) {
+        if (!InputValidation.isValidPassword(password)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 
-        int id = authService.getUserIdByToken(email, token);
+        int id = authService.getTokenByUser(email, token);
         if (id == 0) {
-            return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
         }
 
         Optional<User> updatedUser = userService.updatePassword(id, password);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
-                .orElseGet(() -> ResponseEntity.ok(BaseResponse.failure("User not found")));
+                .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
 

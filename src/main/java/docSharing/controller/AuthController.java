@@ -1,10 +1,10 @@
 package docSharing.controller;
 
+import docSharing.controller.request.UserRequest;
 import docSharing.controller.response.BaseResponse;
-import docSharing.controller.response.TokenResponse;
 import docSharing.entities.User;
 import docSharing.service.AuthService;
-import docSharing.utils.Validate;
+import docSharing.utils.InputValidation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,46 +25,46 @@ public class AuthController {
     private static final Logger logger = LogManager.getLogger(AuthController.class.getName());
 
     @RequestMapping(method = RequestMethod.POST, path = "/signup")
-    public ResponseEntity<BaseResponse<User>> register(@RequestBody User user){
+    public ResponseEntity<BaseResponse<User>> register(@RequestBody UserRequest userRequest){
         try {
             logger.info("in register");
 
-            if (user.getEmail() == null | !Validate.isValidEmail(user.getEmail())) {
+            if (userRequest.getEmail() == null | !InputValidation.isValidEmail(userRequest.getEmail())) {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email address!"));
             }
-            if (user.getName() == null | !Validate.isValidName(user.getName())) {
+            if (userRequest.getName() == null | !InputValidation.isValidName(userRequest.getName())) {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
             }
-            if (user.getPassword() == null | !Validate.isValidPassword(user.getPassword())) {
+            if (userRequest.getPassword() == null | !InputValidation.isValidPassword(userRequest.getPassword())) {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
             }
 
-            logger.info("New user created" + user);
-            return ResponseEntity.ok(BaseResponse.success(authService.createUser(user)));
+            logger.info("New user created" + userRequest);
+            return ResponseEntity.ok(BaseResponse.success(authService.createUser(userRequest)));
         } catch (SQLDataException e) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Email already exists"));
         }
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "/login")
-    public  ResponseEntity<BaseResponse<TokenResponse>> login(@RequestBody User user){
+    public  ResponseEntity<BaseResponse<String>> login(@RequestBody UserRequest userRequest){
         logger.info("in login");
 
-        if (user.getEmail() == null | !Validate.isValidEmail(user.getEmail())) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
+        if (userRequest.getEmail() == null | !InputValidation.isValidEmail(userRequest.getEmail())) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
         }
-        if (user.getPassword() == null | !Validate.isValidPassword(user.getPassword())) {
+        if (userRequest.getPassword() == null | !InputValidation.isValidPassword(userRequest.getPassword())) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 
-        Optional<String> token = authService.login(user);
+        Optional<String> token = authService.login(userRequest);
         if (!token.isPresent()) {
-            logger.warn("User " + user.getEmail() + " failed to log in");
+            logger.warn("User " + userRequest.getEmail() + " failed to log in");
             return ResponseEntity.badRequest().body(BaseResponse.failure("Wrong Email or Password. Login failed"));
         }
 
-        logger.info("User with email" + user.getEmail() + "logged in");
-        return ResponseEntity.ok(BaseResponse.success(new TokenResponse(token.get())));
+        logger.info("User with email" + userRequest.getEmail() + "logged in");
+        return ResponseEntity.ok(BaseResponse.success(token.get()));
     }
 
 
