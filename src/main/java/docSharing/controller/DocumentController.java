@@ -35,7 +35,7 @@ public class DocumentController {
         }
     }
 
-    public static BaseResponse<Boolean> update(String url, Content updateMessage){
+    public static BaseResponse<Boolean> update(String url, UpdateMessage updateMessage){//TODO: maybe need to change the response type
         if(!isValidURL(url)) {
             logger.error("in update: Invalid url!");
         }else if (documentService.update(url, updateMessage)) {//TODO: update implementation in service
