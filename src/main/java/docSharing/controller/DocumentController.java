@@ -108,15 +108,3 @@ public class DocumentController {
     }
 
 }
-/*API:
- V - DocController()
- + join(User user, String url)
- + leave(User user, String url)
- + update(String url, UpdateMessage updateMessage)
-
- V + BaseResponse<Document> create(User owner)
- V + BaseResponse<Void> delete(String url, User user)
- V + BaseResponse<User> updatePermission(String url, User user, Permission permission)
-
-
- * if socket enables updating and creating entities like REST, then all methods should work with socket. if not: we need to divide API methods to different controllers.*/
