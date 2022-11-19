@@ -27,7 +27,7 @@ public class AuthService {
     public User createUser(User user) throws SQLDataException {
         logger.info("in createUser");
 
-        if(userRepository.getByEmail(user.getEmail())!=null){
+        if(userRepository.findByEmail(user.getEmail())!=null){
             throw new SQLDataException(String.format("Email %s exists in users table", user.getEmail()));
         }
 
@@ -37,7 +37,7 @@ public class AuthService {
     public Optional<String> login(User user) {
         logger.info("in login");
 
-        User userByEmail = userRepository.getByEmail(user.getEmail());
+        User userByEmail = userRepository.findByEmail(user.getEmail());
 
         if (userByEmail == null) {
             return Optional.empty();
@@ -52,13 +52,13 @@ public class AuthService {
         return Optional.empty();
     }
 
-    public Optional<Integer> getUserIdByToken(String email, String token)  {
+    public int getUserIdByToken(String email, String token)  {
         User user = mapUserTokens.get(token);
 
         if (user == null || !user.getEmail().equals(email)) {
-            return Optional.empty();
+            return 0;
         }
-        return Optional.of(user.getId());
+        return user.getId();
     }
 
 

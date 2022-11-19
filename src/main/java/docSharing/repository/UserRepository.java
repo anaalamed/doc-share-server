@@ -7,11 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-        User getByEmail(String email);
 
-        @Query("select u from User u where u.id = ?1")
+        User findByEmail(String email);
+
         User findById(int id);
 
         @Transactional
@@ -33,4 +35,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Modifying
         @Query("update User u set u.password = ?2 where u.id = ?1")
         int updateUserPasswordById(int id, String password);
+
+
 }

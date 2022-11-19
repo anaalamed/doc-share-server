@@ -20,16 +20,16 @@ public class UserService {
     }
 
 
-    public Optional<User> getById(int id) {
-        User user = userRepository.findById(id);
+    public Optional<User> getByEmail(String email) {
+        User user = userRepository.findByEmail(email);
         if (user == null) {
             return Optional.empty();
         }
 
-        return Optional.of(userRepository.findById(id));
+        return Optional.of(user);
     }
 
-    public boolean deleteById(int id) {
+    public boolean deleteUser(int id) {
         int lines = userRepository.deleteById(id);
         logger.debug("lines deleted: " + lines);
 

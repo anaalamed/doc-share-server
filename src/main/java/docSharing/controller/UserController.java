@@ -8,12 +8,9 @@ import docSharing.utils.Validate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.SQLDataException;
 import java.util.Optional;
 
 @RestController
@@ -29,29 +26,29 @@ public class UserController {
     private static final Logger logger = LogManager.getLogger(UserController.class.getName());
 
 
-
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<BaseResponse<User>> getUserById(@RequestParam int id){
-        logger.info("in getUserById");
+    public ResponseEntity<BaseResponse<User>> getUserByEmail(@RequestParam String email){
+        logger.info("in getUserByEmail");
 
-        Optional<User> user = userService.getById(id);
-        return user.map(value -> ResponseEntity.ok(BaseResponse.success(value))).orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found!")));
+        Optional<User> user = userService.getByEmail(email);
+        return user.map(value -> ResponseEntity.ok(BaseResponse.success(value)))
+                .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found!")));
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "delete")
     public ResponseEntity<BaseResponse<String>> deleteUser(@RequestParam String email, @RequestHeader String token){
         logger.debug("in deleteUser");
 
-        Optional<Integer> id = authService.getUserIdByToken(email, token);
-        if (!id.isPresent()) {
+        int id = authService.getUserIdByToken(email, token);
+        if (id == 0) {
             return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
         }
 
-        if (userService.deleteById(id.get())) {
+        if (userService.deleteUser(id)) {
             return ResponseEntity.ok(BaseResponse.noContent(true, "user " + email + " deleted"));
         }
 
-        return ResponseEntity.ok(BaseResponse.failure("Delete user #" + id.get() + "failed"));
+        return ResponseEntity.ok(BaseResponse.failure("Delete user #" + id + "failed"));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "name")
@@ -63,12 +60,13 @@ public class UserController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
         }
 
-        Optional<Integer> id = authService.getUserIdByToken(email, token);
-        if (!id.isPresent()) {
+        int id = authService.getUserIdByToken(email, token);
+        logger.debug(id);
+        if (id == 0) {
             return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
         }
 
-        Optional<User> updatedUser = userService.updateName(id.get(), name);
+        Optional<User> updatedUser = userService.updateName(id, name);
         return updatedUser.map(value -> ResponseEntity.ok(BaseResponse.success(value))).
                 orElseGet(() -> ResponseEntity.ok(BaseResponse.failure("User not found")));
     }
@@ -82,12 +80,12 @@ public class UserController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
         }
 
-        Optional<Integer> id = authService.getUserIdByToken(email, token);
-        if (!id.isPresent()) {
+        int id = authService.getUserIdByToken(email, token);
+        if (id == 0) {
             return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
         }
 
-        Optional<User> updatedUser = userService.updateEmail(id.get(), newEmail);
+        Optional<User> updatedUser = userService.updateEmail(id, newEmail);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
                 .orElseGet(() -> ResponseEntity.ok(BaseResponse.failure("User not found")));
     }
@@ -101,12 +99,12 @@ public class UserController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 
-        Optional<Integer> id = authService.getUserIdByToken(email, token);
-        if (!id.isPresent()) {
+        int id = authService.getUserIdByToken(email, token);
+        if (id == 0) {
             return ResponseEntity.ok(BaseResponse.failure("User not authorized"));
         }
 
-        Optional<User> updatedUser = userService.updatePassword(id.get(), password);
+        Optional<User> updatedUser = userService.updatePassword(id, password);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
                 .orElseGet(() -> ResponseEntity.ok(BaseResponse.failure("User not found")));
     }
