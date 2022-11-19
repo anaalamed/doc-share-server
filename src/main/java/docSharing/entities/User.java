@@ -14,9 +14,7 @@ public class User {
     private String email;
     private String password;
 
-
-    public void setId(int id) {
-        this.id = id;
+    public User() {
     }
 
     public int getId() {
