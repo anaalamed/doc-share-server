@@ -17,7 +17,7 @@ public class FileService {
         this.fileRepository = documentRepository;
     }
 
-    public void join(User user, String url) {
+    /*public void join(User user, String url) {
         File file = fileRepository.findByUrl(url);
         file.addActiveUser(user);
         fileRepository.save(file);
@@ -35,7 +35,7 @@ public class FileService {
             Document document = (Document) file;
             document.updateContent(updateRequest);
         }
-    }
+    }*/
 
     public void createDocument(User owner, Folder parent, String title, String url) {
         Document document = new Document(owner, parent, title, url);
