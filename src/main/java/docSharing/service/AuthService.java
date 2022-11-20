@@ -2,7 +2,9 @@ package docSharing.service;
 
 import docSharing.controller.request.UserRequest;
 import docSharing.entities.User;
+import docSharing.entities.VerificationToken;
 import docSharing.repository.UserRepository;
+import docSharing.repository.VerificationTokenRepository;
 import docSharing.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +20,9 @@ import java.util.Optional;
 public class AuthService {
     @Autowired
     private final UserRepository userRepository;
+
+    @Autowired
+    private VerificationTokenRepository tokenRepository;
     static HashMap<User, String> mapUserTokens = new HashMap<>();
 
     private static final Logger logger = LogManager.getLogger(AuthService.class.getName());
@@ -26,6 +31,7 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
+
     public User createUser(UserRequest userRequest) throws SQLDataException {
         logger.info("in createUser");
 
@@ -33,6 +39,7 @@ public class AuthService {
             throw new SQLDataException(String.format("Email %s exists in users table", userRequest.getEmail()));
         }
 
+        logger.debug(userRequest);
         return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), userRequest.getPassword()));
     }
 
@@ -52,6 +59,39 @@ public class AuthService {
         }
 
         return Optional.empty();
+    }
+
+    public boolean isEnabledUser(UserRequest userRequest) {
+        logger.info("in isEnabledUser");
+
+        User userByEmail = userRepository.findByEmail(userRequest.getEmail());
+
+        if (userByEmail == null) {
+            return false;
+        }
+
+        return userByEmail.isEnabled();
+    }
+
+
+
+    // ------------------ verification token ------------------
+    public User getUser(String verificationToken) {
+        User user = tokenRepository.findByToken(verificationToken).getUser();
+        return user;
+    }
+
+    public VerificationToken getVerificationToken(String VerificationToken) {
+        return tokenRepository.findByToken(VerificationToken);
+    }
+
+    public void createVerificationToken(User user, String token) {
+        VerificationToken myToken = new VerificationToken(token, user);
+        tokenRepository.save(myToken);
+    }
+
+    public void saveRegisteredUser(User user) {
+        userRepository.save(user);
     }
 
 
