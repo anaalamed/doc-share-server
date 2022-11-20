@@ -1,9 +1,19 @@
 package docSharing.entities.document;
 
+import javax.persistence.*;
+
 import static java.lang.Math.max;
 
+@Entity
 public class Content {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+
     private String content;
+
+    @OneToOne(mappedBy = "content")
+    private Document document;
 
     public Content() {
         content = "";

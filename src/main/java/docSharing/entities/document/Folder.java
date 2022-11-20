@@ -1,16 +1,17 @@
 package docSharing.entities.document;
 import docSharing.entities.User;
 
-import javax.persistence.ElementCollection;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Entity
+@Table(name = "folder")
 public class Folder extends File {
     @ElementCollection
     private List<File> subFiles;
 
-    public Folder(User owner, File parent, String title, String url) {
+    public Folder(User owner, Folder parent, String title, String url) {
         super(owner, parent, title, url);
         this.subFiles = new ArrayList<>();
     }
@@ -21,5 +22,9 @@ public class Folder extends File {
 
     public void addSubFile(File file) {
         this.subFiles.add(file);
+    }
+
+    public void removeSubFile(File file) {
+        this.subFiles.remove(file);
     }
 }

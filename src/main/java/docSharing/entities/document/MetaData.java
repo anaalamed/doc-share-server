@@ -1,5 +1,4 @@
 package docSharing.entities.document;
-
 import docSharing.entities.User;
 
 import javax.persistence.*;
@@ -12,8 +11,8 @@ public class MetaData {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "file_id")
-    private File parent;
+    @JoinColumn(name = "folder_id")
+    private Folder parent;
     @Column(name = "created")
     private final LocalDate created;
     @Column(name = "last_updated")
@@ -26,7 +25,7 @@ public class MetaData {
     @OneToOne(mappedBy = "metadata")
     private File file;
 
-    public MetaData(File file, File parent, String title, User createdBy) {
+    public MetaData(File file, Folder parent, String title, User createdBy) {
         this.file = file;
         this.parent = parent;
         this.created = LocalDate.now();
