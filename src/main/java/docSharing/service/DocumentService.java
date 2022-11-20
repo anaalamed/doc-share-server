@@ -1,37 +1,73 @@
 package docSharing.service;
 
 import docSharing.controller.request.UpdateRequest;
+import docSharing.entities.Permission;
 import docSharing.entities.User;
 import docSharing.entities.document.Document;
-import docSharing.entities.document.File;
-import docSharing.repository.FileRepository;
+import docSharing.entities.document.Folder;
+import docSharing.repository.DocumentRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DocumentService {
-    private final FileRepository fileRepository;
+    private final DocumentRepository documentRepository;
 
-    private DocumentService(FileRepository documentRepository) {
-        this.fileRepository = documentRepository;
+    private DocumentService(DocumentRepository documentRepository) {
+        this.documentRepository = documentRepository;
     }
 
-    public void join(User user, String url) {
-        File file = fileRepository.findByUrl(url);
-        file.addActiveUser(user);
-        fileRepository.save(file);
+    public boolean join(int id, User user) {
+        Document document = documentRepository.getReferenceById(id);
+        document.addActiveUser(user);
+        Document savedDocument = documentRepository.save(document);
+
+        return savedDocument.isActiveUser(user);
     }
 
-    public void leave(User user, String url) {
-        File file = fileRepository.findByUrl(url);
-        file.removeActiveUser(user);
-        fileRepository.save(file);
+    public boolean leave(int id, User user) {
+        Document document = documentRepository.getReferenceById(id);
+        document.removeActiveUser(user);
+        Document savedDocument = documentRepository.save(document);
+
+        return !savedDocument.isActiveUser(user);
     }
 
-    public void update(String url, UpdateRequest updateRequest) {
-        File file = fileRepository.findByUrl(url);
-        if (file instanceof Document) {
-            Document document = (Document) file;
-            document.updateContent(updateRequest);
+    public Document update(int id, UpdateRequest updateRequest) {
+        Document document = documentRepository.getReferenceById(id);
+        document.updateContent(updateRequest);
+
+        return documentRepository.save(document);
+    }
+
+    public Document createDocument(User owner, Folder parent, String title) {
+        Document document = new Document(owner, parent, title);
+        return documentRepository.save(document);
+    }
+
+    public boolean delete(int id, User user) {
+        Document document = documentRepository.getReferenceById(id);
+        if (!(document.hasPermission(user, Permission.OWNER) || document.hasPermission(user, Permission.EDITOR))) {
+            return false;
         }
+
+        try {
+            documentRepository.delete(document);
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean updatePermission(int id, User owner, User user, Permission permission) {
+        Document document = documentRepository.getReferenceById(id);
+        if (!document.hasPermission(owner, Permission.OWNER)) {
+            return false;
+        }
+
+        document.updatePermission(user, permission);
+        Document savedDocument = documentRepository.save(document);
+
+        return savedDocument.hasPermission(user, permission);
     }
 }

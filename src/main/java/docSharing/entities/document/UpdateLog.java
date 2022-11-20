@@ -3,9 +3,15 @@ package docSharing.entities.document;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
 
+import javax.persistence.*;
 import java.time.LocalDate;
-
+@Entity
 public class UpdateLog {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "update_id")
     private UpdateRequest updateRequest;
     private LocalDate timestamp;
 
