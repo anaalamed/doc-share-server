@@ -33,10 +33,8 @@ public class DocumentController {
         if(!isCreateValid(owner, title)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Create invalid!"));
         }
-        return ResponseEntity.ok(BaseResponse.success(
-                true,
-                "document: "+title+"created",
-                documentService.createDocument(owner, parent, title)));
+        logger.info("document: " + title + " created");
+        return ResponseEntity.ok(BaseResponse.success(documentService.createDocument(owner, parent, title)));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, path="/updatePermission/{permission}")
@@ -44,11 +42,9 @@ public class DocumentController {
                                                                  @RequestParam User user, @PathVariable("permission") Permission permission){
         logger.info("in updatePermission");
         if(documentService.updatePermission(id,owner, user, permission)) {
-            return ResponseEntity.ok(BaseResponse.success(true,
-                    "owner: "+owner.getName()+"update "+ user.getName()+"permission to: "+ permission,
-                    user));
-        }
-        else {
+            logger.info("owner: "+owner.getName()+"update "+ user.getName()+"permission to: "+ permission);
+            return ResponseEntity.ok(BaseResponse.success(user));
+        } else {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Update Permission to"+user.getName()+" failed"));
         }
     }

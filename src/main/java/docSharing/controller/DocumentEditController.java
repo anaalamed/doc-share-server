@@ -2,6 +2,7 @@ package docSharing.controller;
 
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
+import docSharing.entities.document.Document;
 import docSharing.service.DocumentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,33 +25,35 @@ public class DocumentEditController {
     }
 
     @MessageMapping("/join")
-    public void join(User user,String url){
+    public boolean join(int id, User user){
         logger.info("in join");
-        if(!isValidURL(url)){
-            logger.error("Invalid URL!");
+        if(documentService.join(id, user)) {
+            logger.info("user" + user.getName() + "join");
+            return true;
+        }else{
+            logger.error("user" + user.getName() + "failed to join");
+            return false;
         }
-        documentService.join(user,url);
-        logger.info("user"+ user.getName() +"join to:"+ url);
     }
 
     @MessageMapping("/leave") //TODO: add path 'leave' in client
-    public void leave(User user, String url) {
+    public boolean leave(int id, User user){
         logger.info("in leave");
-        if(!isValidURL(url)){
-            logger.error("Invalid URL!");
+        if(documentService.leave(id, user)) {
+            logger.info("user" + user.getName() + "leave");
+            return true;
         }
-        documentService.leave(user,url);
-        logger.info("user"+ user.getName() +"leave:"+ url);
+        else{
+            logger.error("user" + user.getName() + "failed to leave");
+            return false;
+        }
     }
 
     @MessageMapping("/update")
     @SendTo("/topic/updates")
-    public void update(String url, UpdateRequest updateRequest){
+    public Document update(int id, UpdateRequest updateRequest){
         logger.info("in update");
-        if(!isValidURL(url)){
-            logger.error("Invalid URL!");
-        }
-        documentService.update(url, updateRequest);
-        logger.info("update message:"+updateRequest.getContent()+"in url:"+url);
+        logger.info("update message:"+updateRequest.getContent());
+        return documentService.update(id, updateRequest);
     }
 }

@@ -4,6 +4,7 @@ import docSharing.controller.response.BaseResponse;
 import docSharing.entities.User;
 import docSharing.entities.document.Document;
 import docSharing.entities.document.Folder;
+import docSharing.service.FolderService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,18 +24,15 @@ public class FolderController {
     public FolderController() {
     }
 
-
     @RequestMapping(method = RequestMethod.POST, path="/create")
-    public ResponseEntity<BaseResponse<Document>> create(@RequestHeader int id, @RequestParam User owner,
+    public ResponseEntity<BaseResponse<Folder>> create(@RequestParam User owner,
                                                          @RequestParam Folder parent, @RequestParam String title) {
         logger.info("in create");
         if(!isCreateValid(owner, title)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Create invalid!"));
         }
-        return ResponseEntity.ok(BaseResponse.success(
-                true,
-                "folder: "+title+"created",
-                folderService.createFolder(owner, parent, title, id)));
+        logger.info("folder: "+title+"created");
+        return ResponseEntity.ok(BaseResponse.success(folderService.createFolder(owner, parent, title)));
     }
 
     @RequestMapping(method = RequestMethod.DELETE,path="/delete")
@@ -48,6 +46,4 @@ public class FolderController {
         }
 
     }
-
-
 }
