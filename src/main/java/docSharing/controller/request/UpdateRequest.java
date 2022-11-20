@@ -5,7 +5,8 @@ public class UpdateRequest {
     private String user;
     private UpdateType type;
     private String content;
-    private int position;
+    private int startPosition;
+    private int endPosition;
 
     public UpdateRequest() {
     }
@@ -34,12 +35,20 @@ public class UpdateRequest {
         this.content = content;
     }
 
-    public int getPosition() {
-        return position;
+    public int getStartPosition() {
+        return startPosition;
     }
 
-    public void setPosition(int position) {
-        this.position = position;
+    public void setStartPosition(int position) {
+        this.startPosition = position;
+    }
+
+    public int getEndPosition() {
+        return endPosition;
+    }
+
+    public void setEndPosition(int endPosition) {
+        this.endPosition = endPosition;
     }
 
     public enum UpdateType{
