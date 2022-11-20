@@ -11,10 +11,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLDataException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -24,6 +26,9 @@ public class AuthService {
     private final VerificationTokenRepository tokenRepository;
     @Autowired
     ApplicationEventPublisher eventPublisher;
+
+    private static final int SCHEDULE = 1000 * 60 * 60;
+
     static HashMap<User, String> mapUserTokens = new HashMap<>();
 
     private static final Logger logger = LogManager.getLogger(AuthService.class.getName());
@@ -34,18 +39,6 @@ public class AuthService {
     }
 
 
-
-//    public User createUser(UserRequest userRequest) throws SQLDataException {
-//        logger.info("in createUser");
-//
-//        if(userRepository.findByEmail(userRequest.getEmail())!=null){
-//            throw new SQLDataException(String.format("Email %s exists in users table", userRequest.getEmail()));
-//        }
-//
-//        logger.debug(userRequest);
-//        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), userRequest.getPassword()));
-//    }
-
     public User createUser(UserRequest userRequest) throws SQLDataException {
         logger.info("in createUser");
 
@@ -54,12 +47,7 @@ public class AuthService {
         }
 
         logger.debug(userRequest);
-        User userCreated = new User(userRequest.getName(), userRequest.getEmail(), userRequest.getPassword());
-        return userRepository.save(userCreated);
-
-//        String token = UUID.randomUUID().toString();
-//        createVerificationToken(userCreated, token);
-//        return userCreated;
+        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), userRequest.getPassword()));
     }
 
     public Optional<String> login(UserRequest userRequest) {
@@ -106,8 +94,33 @@ public class AuthService {
 
     public void createVerificationToken(User user, String token) {
         VerificationToken myToken = new VerificationToken(token, user);
-        logger.debug(myToken);
         tokenRepository.save(myToken);
+    }
+
+    public void publishRegistrationEvent(User createdUser, Locale locale, String appUrl  ) {
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(createdUser, locale, appUrl));
+    }
+
+    public void deleteVerificationToken(String token) {
+        tokenRepository.deleteByToken(token);
+    }
+
+
+    @Scheduled(fixedRate = SCHEDULE)
+    public void scheduleDeleteNotActivatedUsers() {
+        logger.info("---------- in scheduleDeleteNotActivatedUsers-------------");
+        List<VerificationToken> tokens = tokenRepository.findAll();
+
+        Calendar cal = Calendar.getInstance();
+        List<VerificationToken> expiredTokens = tokens.stream().
+                filter(token -> token.getExpiryDate().getTime() - cal.getTime().getTime() <= 0)
+                .collect(Collectors.toList());
+
+        for (VerificationToken token: expiredTokens) {
+            deleteVerificationToken(token.getToken());
+            userRepository.deleteById(token.getUser().getId());
+            logger.debug("verification token for user_id#" + token.getUser().getId() + " and non activated user was deleted");
+        }
     }
 
     public void saveRegisteredUser(User user) {
@@ -138,11 +151,5 @@ public class AuthService {
         }
     }
 
-    public void publishRegistrationEvent(User createdUser, Locale locale, String appUrl  ) {
-        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(createdUser, locale, appUrl));
-    }
 
-    public void deleteVerificationToken(String token) {
-        tokenRepository.deleteByToken(token);
-    }
 }
