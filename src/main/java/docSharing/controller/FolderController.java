@@ -1,10 +1,8 @@
 package docSharing.controller;
 
 import docSharing.controller.response.BaseResponse;
-import docSharing.entities.Permission;
 import docSharing.entities.User;
 import docSharing.entities.document.Document;
-import docSharing.entities.document.FileType;
 import docSharing.entities.document.Folder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,14 +34,19 @@ public class FolderController {
         return ResponseEntity.ok(BaseResponse.success(
                 true,
                 "folder: "+title+"created",
-                folderService.create(owner, parent, title, id)));
+                folderService.createFolder(owner, parent, title, id)));
     }
 
     @RequestMapping(method = RequestMethod.DELETE,path="/delete")
     public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int id, @RequestParam User user){
         logger.info("in delete");
-        folderService.delete(id,user);
-        return ResponseEntity.ok(BaseResponse.noContent(true,"folder deleted"));
+        if(folderService.delete(id,user)) {
+            return ResponseEntity.ok(BaseResponse.noContent(true, "folder deleted"));
+        }
+        else {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("The deletion failed"));
+        }
+
     }
 
 
