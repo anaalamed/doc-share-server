@@ -2,16 +2,32 @@ package docSharing.entities.document;
 
 import docSharing.entities.User;
 
+import javax.persistence.*;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "metadata")
 public class MetaData {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "file_id")
     private File parent;
+    @Column(name = "created")
     private final LocalDate created;
+    @Column(name = "last_updated")
     private LocalDate lastUpdated;
+    @Column(name = "title")
     private String title;
-    private final User createdBy;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private User createdBy;
+    @OneToOne(mappedBy = "metadata")
+    private File file;
 
-    public MetaData(File parent, String title, User createdBy) {
+    public MetaData(File file, File parent, String title, User createdBy) {
+        this.file = file;
         this.parent = parent;
         this.created = LocalDate.now();
         this.lastUpdated =  LocalDate.now();
