@@ -18,4 +18,11 @@ public class Utils {
     public static String hashPassword(String password){
         return BCrypt.withDefaults().hashToString(12, password.toCharArray());
     }
+
+    public static boolean verifyPassword(String passwordFromUser, String PasswordFromDB){
+        BCrypt.Result result = BCrypt.verifyer().verify(passwordFromUser.toCharArray(),
+                PasswordFromDB.toCharArray());
+
+        return result.verified;
+    }
 }

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static docSharing.utils.Utils.hashPassword;
+import static docSharing.utils.Utils.verifyPassword;
 
 @Service
 public class AuthService {
@@ -48,10 +49,8 @@ public class AuthService {
             return Optional.empty();
         }
 
-
-        BCrypt.Result result = BCrypt.verifyer().verify(userByEmail.getPassword().toCharArray(),
-                                                        userRequest.getPassword().toCharArray());
-        if(result.verified) {
+        boolean passwordVerify= verifyPassword(userByEmail.getPassword(),userRequest.getPassword());
+        if(passwordVerify) {
             Optional<String> token = Optional.of(Utils.generateUniqueToken()) ;
             mapUserTokens.put(userByEmail, token.get());
             return token;
