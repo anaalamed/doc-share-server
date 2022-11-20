@@ -8,18 +8,32 @@ import docSharing.entities.document.Document;
 import docSharing.service.DocumentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.sql.SQLDataException;
 
+import static jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle.title;
 
+@RestController
+@CrossOrigin
+@RequestMapping("/document")
 public class DocumentController {
-    private static DocumentService documentService = new DocumentService();
+    @Autowired
+    private  DocumentService documentService;
+
     private static Logger logger = LogManager.getLogger(DocumentController.class.getName());
 
     public DocumentController() {
     }
-    public static void join(User user, String url){
+
+    @RequestMapping(method = RequestMethod.POST)// should be PUT?
+    public static void join(@RequestParam User user,@RequestParam String url){
         if(!isValidURL(url)) {
             logger.error("in join: Invalid url!");
         }else{
@@ -27,7 +41,8 @@ public class DocumentController {
         }
     }
 
-    public static void leave(User user, String url) {
+    @RequestMapping(method = RequestMethod.DELETE)
+    public static void leave(@RequestParam User user,@RequestParam String url) {
         if(!isValidURL(url)) {
             logger.error("in leave: Invalid url!");
         }else{
@@ -35,16 +50,23 @@ public class DocumentController {
         }
     }
 
-    public static BaseResponse<Boolean> update(String url, UpdateMessage updateMessage){//TODO: maybe need to change the response type
+    @RequestMapping(method = RequestMethod.POST)
+    public static BaseResponse<String> update(@RequestParam String url,@RequestParam UpdateMessage updateMessage){//TODO: maybe need to change the response type
         if(!isValidURL(url)) {
-            logger.error("in update: Invalid url!");
-        }else if (documentService.update(url, updateMessage)) {//TODO: update implementation in service
-            return BaseResponse.success(true);
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "in update: Invalid URL");
+        }else{
+            try{
+                return BaseResponse.success(documentService.update(url, updateMessage));
+            } catch (SQLDataException e) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Error. No update was performed.", e);
+            }
         }
-        return BaseResponse.failure("Error. No update was performed.");
     }
 
-    public static BaseResponse<Document> create(User owner, String title) {
+    @RequestMapping(method = RequestMethod.POST) // should be PUT?
+    public static BaseResponse<Document> create(RequestParam User owner, RequestParam  String title) {
         try{
             isCreateValid(owner, title);
         }catch (Exception e) {
@@ -59,7 +81,8 @@ public class DocumentController {
         }
     }
 
-    public static BaseResponse<Boolean> delete(String url, User user) {
+    @RequestMapping(method = RequestMethod.DELETE)
+    public static BaseResponse<Boolean> delete(@RequestParam String url, @RequestParam User user) {
         if(!isValidURL(url)) {
             logger.error("in delete: Invalid url!");
         }else if (documentService.delete(url, user)) {//TODO: delete implementation in service
@@ -68,11 +91,12 @@ public class DocumentController {
        return BaseResponse.failure("Error. No deletion was performed.");
     }
 
-    BaseResponse<User> updatePermission(String url, User user, Permission permission){
+    @RequestMapping(method = RequestMethod.POST)
+    BaseResponse<User> updatePermission(@RequestParam String url,@RequestParam User user,@RequestParam Permission permission){
         if(!isValidURL(url)) {
             logger.error("in updatePermission: Invalid url!");
         }else {
-            if (documentService.updatePermission(url, user,permission)) {//TODO: delete implementation in service
+            if (documentService.updatePermission(url, user, permission)) {//TODO: delete implementation in service
                 return BaseResponse.success(user);
             }
         }
@@ -90,8 +114,10 @@ public class DocumentController {
             new URL(url).toURI();
             return true;
         } catch (MalformedURLException e) {
+            logger.error(" Invalid url!");
             return false;
         } catch (URISyntaxException e) {
+            logger.error(" Invalid url!");
             return false;
         }
     }
