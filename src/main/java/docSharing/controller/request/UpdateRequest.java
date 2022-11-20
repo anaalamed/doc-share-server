@@ -64,7 +64,8 @@ public class UpdateRequest {
                 "user='" + user + '\'' +
                 ", type=" + type +
                 ", content='" + content + '\'' +
-                ", position=" + position +
+                ", startPosition=" + startPosition +
+                ", endPosition=" + endPosition +
                 '}';
     }
 }
