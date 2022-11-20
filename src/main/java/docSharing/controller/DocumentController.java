@@ -6,12 +6,14 @@ import docSharing.service.DocumentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import static docSharing.utils.Utils.*;
 
 @Controller
+@ComponentScan
 public class DocumentController {
     @Autowired
     private DocumentService documentService;

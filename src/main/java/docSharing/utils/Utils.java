@@ -21,9 +21,6 @@ public class Utils {
                 .append(UUID.randomUUID().toString()).toString();
     }
 
-    public static boolean isUserNull (User user){
-        return user.getId() == 0;
-    }
     public static boolean isValidURL(String url) {
         try {
             new URL(url).toURI();
@@ -33,12 +30,12 @@ public class Utils {
         }
     }
     public static boolean isCreateValid(User owner, String title) {
-        if (isUserNull(owner)) {
+        if (owner.equals(null)) {
             logger.error("NULL user trying to create file!");
             return false;
         }
         if (title.equals("")) {
-            logger.info("The document will be created without a title");
+            logger.info("The title is empty");
             return false;
         }
         return true;
