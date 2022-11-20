@@ -1,4 +1,4 @@
-package docSharing.utils;
+package docSharing.utils.emailActivation;
 
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -25,7 +25,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.google.api.services.gmail.GmailScopes.GMAIL_SEND;
 import static javax.mail.Message.RecipientType.TO;

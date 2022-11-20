@@ -1,4 +1,4 @@
-package docSharing.utils;
+package docSharing.utils.emailActivation;
 
 import docSharing.entities.User;
 import org.springframework.context.ApplicationEvent;

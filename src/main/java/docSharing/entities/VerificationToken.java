@@ -24,10 +24,9 @@ public class VerificationToken {
     public VerificationToken() {}
 
     public VerificationToken(String token, User user) {
-        this.id = id;
         this.token = token;
         this.user = user;
-        this.expiryDate = calculateExpiryDate(100000);
+        this.expiryDate = calculateExpiryDate(EXPIRATION);
     }
 
     private Date calculateExpiryDate(int expiryTimeInMinutes) {
@@ -42,9 +41,6 @@ public class VerificationToken {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getToken() {
         return token;

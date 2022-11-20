@@ -8,11 +8,9 @@ import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
 import docSharing.service.AuthService;
 import docSharing.utils.InputValidation;
-import docSharing.utils.OnRegistrationCompleteEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -33,8 +31,8 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @Autowired
-    ApplicationEventPublisher eventPublisher;
+//    @Autowired
+//    ApplicationEventPublisher eventPublisher;
 
     private static final Logger logger = LogManager.getLogger(AuthController.class.getName());
 
@@ -55,8 +53,7 @@ public class AuthController {
 
             User createdUser = authService.createUser(userRequest);
             String appUrl = request.getContextPath();
-
-            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(createdUser, request.getLocale(), appUrl));
+            authService.publishRegistrationEvent(createdUser, request.getLocale(), appUrl);
             return ResponseEntity.ok(BaseResponse.success(createdUser));
         } catch (SQLDataException e) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Email already exists"));
@@ -107,6 +104,7 @@ public class AuthController {
 
         user.setEnabled(true);
         authService.saveRegisteredUser(user);
+        authService.deleteVerificationToken(token);
         return "redirect:/login.html?lang=" + request.getLocale().getLanguage();
     }
 
