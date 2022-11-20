@@ -21,23 +21,4 @@ public class Utils {
                 .append(UUID.randomUUID().toString()).toString();
     }
 
-    public static boolean isValidURL(String url) {
-        try {
-            new URL(url).toURI();
-            return true;
-        } catch (MalformedURLException | URISyntaxException e) {
-            return false;
-        }
-    }
-    public static boolean isCreateValid(User owner, String title) {
-        if (owner.equals(null)) {
-            logger.error("NULL user trying to create file!");
-            return false;
-        }
-        if (title.equals("")) {
-            logger.info("The title is empty");
-            return false;
-        }
-        return true;
-    }
 }

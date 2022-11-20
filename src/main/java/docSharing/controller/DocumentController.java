@@ -3,8 +3,7 @@ package docSharing.controller;
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.Permission;
 import docSharing.entities.User;
-import docSharing.entities.document.Document;
-import docSharing.entities.document.Folder;
+import docSharing.entities.document.*;
 import docSharing.service.DocumentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static docSharing.utils.Utils.isCreateValid;
 
 @RestController
 @CrossOrigin
@@ -30,8 +28,11 @@ public class DocumentController {
     public ResponseEntity<BaseResponse<Document>> create(@RequestParam User owner,
                                                          @RequestParam Folder parent, @RequestParam String title) {
         logger.info("in create");
-        if(!isCreateValid(owner, title)) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Create invalid!"));
+        if(!owner.equals(null)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("NULL user trying to create document!"));
+        }
+        if(title.equals("")) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("The title is empty!"));
         }
         logger.info("document: " + title + " created");
         return ResponseEntity.ok(BaseResponse.success(documentService.createDocument(owner, parent, title)));

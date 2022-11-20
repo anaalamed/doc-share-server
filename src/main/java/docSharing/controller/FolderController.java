@@ -2,7 +2,6 @@ package docSharing.controller;
 
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.User;
-import docSharing.entities.document.Document;
 import docSharing.entities.document.Folder;
 import docSharing.service.FolderService;
 import org.apache.logging.log4j.LogManager;
@@ -10,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import static docSharing.utils.Utils.*;
 
 @RestController
 @CrossOrigin
@@ -28,8 +26,11 @@ public class FolderController {
     public ResponseEntity<BaseResponse<Folder>> create(@RequestParam User owner,
                                                          @RequestParam Folder parent, @RequestParam String title) {
         logger.info("in create");
-        if(!isCreateValid(owner, title)) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Create invalid!"));
+        if(!owner.equals(null)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("NULL user trying to create folder!"));
+        }
+        if(title.equals("")) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("The title is empty!"));
         }
         logger.info("folder: "+title+"created");
         return ResponseEntity.ok(BaseResponse.success(folderService.createFolder(owner, parent, title)));
