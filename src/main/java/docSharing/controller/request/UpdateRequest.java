@@ -1,8 +1,16 @@
 package docSharing.controller.request;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
+@Entity
 public class UpdateRequest {
-    private String user;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+    private String userEmail;
     private UpdateType type;
     private String content;
     private int startPosition;
@@ -11,12 +19,12 @@ public class UpdateRequest {
     public UpdateRequest() {
     }
 
-    public String getUser() {
-        return user;
+    public String getUserEmail() {
+        return userEmail;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public UpdateType getType() {
@@ -56,15 +64,5 @@ public class UpdateRequest {
         APPEND,
         DELETE_RANGE,
         APPEND_RANGE
-    }
-
-    @Override
-    public String toString() {
-        return "UpdateRequest{" +
-                "user='" + user + '\'' +
-                ", type=" + type +
-                ", content='" + content + '\'' +
-                ", position=" + position +
-                '}';
     }
 }

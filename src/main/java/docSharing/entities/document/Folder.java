@@ -1,11 +1,13 @@
 package docSharing.entities.document;
 import docSharing.entities.User;
 
+import javax.persistence.ElementCollection;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class Folder extends File {
+    @ElementCollection
     private List<File> subFiles;
 
     public Folder(User owner, File parent, String title, String url) {
