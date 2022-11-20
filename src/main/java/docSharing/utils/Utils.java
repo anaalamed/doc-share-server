@@ -11,8 +11,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 public class Utils {
-    private static final Logger logger = LogManager.getLogger(Utils.class.getName());
-
     public static String generateUniqueToken() {
         StringBuilder token = new StringBuilder();
         long currentTimeInMilisecond = Instant.now().toEpochMilli();
