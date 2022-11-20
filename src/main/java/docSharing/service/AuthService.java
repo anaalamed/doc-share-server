@@ -1,5 +1,6 @@
 package docSharing.service;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import docSharing.controller.request.UserRequest;
 import docSharing.entities.User;
 import docSharing.repository.UserRepository;
@@ -13,6 +14,8 @@ import java.sql.SQLDataException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static docSharing.utils.Utils.hashPassword;
 
 @Service
 public class AuthService {
@@ -33,7 +36,7 @@ public class AuthService {
             throw new SQLDataException(String.format("Email %s exists in users table", userRequest.getEmail()));
         }
 
-        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), userRequest.getPassword()));
+        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), hashPassword(userRequest.getPassword())));
     }
 
     public Optional<String> login(UserRequest userRequest) {
@@ -45,7 +48,10 @@ public class AuthService {
             return Optional.empty();
         }
 
-        if (userByEmail.getPassword().equals(userRequest.getPassword())) {
+
+        BCrypt.Result result = BCrypt.verifyer().verify(userByEmail.getPassword().toCharArray(),
+                                                        userRequest.getPassword().toCharArray());
+        if(result.verified) {
             Optional<String> token = Optional.of(Utils.generateUniqueToken()) ;
             mapUserTokens.put(userByEmail, token.get());
             return token;
@@ -77,4 +83,5 @@ public class AuthService {
             }
         }
     }
+
 }
