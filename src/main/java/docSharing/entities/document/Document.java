@@ -34,8 +34,8 @@ public class Document extends File {
     @ElementCollection
     private final List<UpdateLog> updateLogs;
 
-    public Document(User owner, Folder parent, String title, String url) {
-        super(owner, parent, title, url);
+    public Document(User owner, Folder parent, String title) {
+        super(owner, parent, title);
         this.content = new Content();
 
         for (Permission permission : Permission.values()) {

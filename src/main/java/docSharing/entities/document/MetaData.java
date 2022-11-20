@@ -34,16 +34,35 @@ public class MetaData {
         this.createdBy = createdBy;
     }
 
-    public void setParent(Folder parent) {
-        this.parent = parent;
+    public Folder getParent() {
+        return parent;
+    }
+
+    public LocalDate getCreated() {
+        return created;
+    }
+
+    public LocalDate getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
     }
 
     public void setLastUpdated(LocalDate lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    protected void setParent(Folder parent) {
+        this.parent = parent;
     }
 
+    protected void setTitle(String title) {
+        this.title = title;
+    }
 }

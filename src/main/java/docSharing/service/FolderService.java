@@ -14,8 +14,8 @@ public class FolderService {
         this.folderRepository = folderRepository;
     }
 
-    public Folder createFolder(User owner, Folder parent, String title, String url) {
-        Folder folder = new Folder(owner, parent, title, url);
+    public Folder createFolder(User owner, Folder parent, String title) {
+        Folder folder = new Folder(owner, parent, title);
         return folderRepository.save(folder);
     }
 

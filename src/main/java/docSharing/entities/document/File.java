@@ -2,6 +2,7 @@ package docSharing.entities.document;
 import docSharing.entities.User;
 
 import javax.persistence.*;
+import java.nio.file.FileSystems;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -20,9 +21,9 @@ public abstract class File {
     private File() {
     }
 
-    public File(User owner, Folder parent, String title, String url) {
-        this.url = url;
+    public File(User owner, Folder parent, String title) {
         this.metadata = new MetaData(this, parent, title, owner);
+        generateUrl();
     }
 
     public String getUrl() {
@@ -31,5 +32,27 @@ public abstract class File {
 
     public MetaData getMetadata() {
         return metadata;
+    }
+
+    public void setParent(Folder parent) {
+        this.metadata.setParent(parent);
+        generateUrl();
+    }
+
+    public void setTitle(String title) {
+        this.metadata.setTitle(title);
+        generateUrl();
+    }
+
+    private void generateUrl() {
+        String url = this.metadata.getTitle();
+        File parent = this.metadata.getParent();
+
+        while (parent != null) {
+            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
+            parent = parent.getMetadata().getParent();
+        }
+
+        this.url = url;
     }
 }

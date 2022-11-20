@@ -39,34 +39,30 @@ public class DocumentService {
         return documentRepository.save(document);
     }
 
-    public Document createDocument(User owner, Folder parent, String title, String url) {
-        Document document = new Document(owner, parent, title, url);
+    public Document createDocument(User owner, Folder parent, String title) {
+        Document document = new Document(owner, parent, title);
         return documentRepository.save(document);
     }
 
     public boolean delete(int id, User user) {
-        boolean success = true;
-
         Document document = documentRepository.getReferenceById(id);
         if (!(document.hasPermission(user, Permission.OWNER) || document.hasPermission(user, Permission.EDITOR))) {
-            success = false;
+            return false;
         }
 
         try {
             documentRepository.delete(document);
         } catch (Exception e) {
-            success = false;
+            return false;
         }
 
-        return success;
+        return true;
     }
 
     public boolean updatePermission(int id, User owner, User user, Permission permission) {
-        boolean success = true;
-
         Document document = documentRepository.getReferenceById(id);
         if (!document.hasPermission(owner, Permission.OWNER)) {
-            success = false;
+            return false;
         }
 
         document.updatePermission(user, permission);

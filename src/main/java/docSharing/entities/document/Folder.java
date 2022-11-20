@@ -11,8 +11,8 @@ public class Folder extends File {
     @ElementCollection
     private List<File> subFiles;
 
-    public Folder(User owner, Folder parent, String title, String url) {
-        super(owner, parent, title, url);
+    public Folder(User owner, Folder parent, String title) {
+        super(owner, parent, title);
         this.subFiles = new ArrayList<>();
     }
 
