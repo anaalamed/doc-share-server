@@ -2,8 +2,7 @@ package docSharing.entities.document;
 
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.Permission;
-import docSharing.entities.User;
-import docSharing.entities.UsersList;
+import docSharing.entities.IntegerList;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -24,25 +23,31 @@ public class Document extends File {
             joinColumns = {@JoinColumn(name = "document_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "users_list_id", referencedColumnName = "id")})
     @MapKeyColumn(name = "permission")
-    @Column(name = "users")
+    @Column(name = "authorized")
     @MapKeyEnumerated
-    private Map<Permission, UsersList> authorized = new HashMap<>();
+    private Map<Permission, IntegerList> authorized = new HashMap<>();
 
-    @ElementCollection
-    private final List<User> activeUsers;
+    @Transient
+    private final List<Integer> activeUsers;
 
     @ElementCollection
     private final List<UpdateLog> updateLogs;
 
-    public Document(User owner, Folder parent, String title) {
-        super(owner, parent, title);
+    public Document() {
+        super();
+        this.activeUsers = new ArrayList<>();
+        this.updateLogs = new ArrayList<>();
+    }
+
+    public Document(int ownerId, int parentId, String title) {
+        super(ownerId, parentId, title);
         this.content = new Content();
 
         for (Permission permission : Permission.values()) {
-            this.authorized.put(permission, new UsersList());
+            this.authorized.put(permission, new IntegerList());
         }
 
-        this.authorized.get(Permission.OWNER).add(owner);
+        this.authorized.get(Permission.OWNER).add(ownerId);
         this.activeUsers = new ArrayList<>();
         this.updateLogs = new ArrayList<>();
     }
@@ -59,34 +64,34 @@ public class Document extends File {
         this.updateLogs.add(updateLog);
     }
 
-    public boolean hasPermission(User user, Permission permission) {
-        return this.authorized.get(permission).contains(user);
+    public boolean hasPermission(int userId, Permission permission) {
+        return this.authorized.get(permission).contains(userId);
     }
 
-    public void addActiveUser(User user) {
-        if (!this.activeUsers.contains(user)) {
-            this.activeUsers.add(user);
+    public void addActiveUser(int userId) {
+        if (!this.activeUsers.contains(userId)) {
+            this.activeUsers.add(userId);
         }
     }
 
-    public void removeActiveUser(User user) {
-        if (this.activeUsers.contains(user)) {
-            this.activeUsers.remove(user);
+    public void removeActiveUser(int userId) {
+        if (this.activeUsers.contains(userId)) {
+            this.activeUsers.remove(userId);
         }
     }
 
-    public void updatePermission(User user, Permission permission) {
+    public void updatePermission(int userId, Permission permission) {
         for (Permission permissionType : Permission.values()) {
-            if (this.authorized.get(permissionType).contains(user)) {
-                this.authorized.get(permissionType).remove(user);
+            if (this.authorized.get(permissionType).contains(userId)) {
+                this.authorized.get(permissionType).remove(userId);
             }
         }
 
-        this.authorized.get(permission).add(user);
+        this.authorized.get(permission).add(userId);
     }
 
-    public boolean isActiveUser(User user) {
-        return this.activeUsers.contains(user);
+    public boolean isActiveUser(int userId) {
+        return this.activeUsers.contains(userId);
     }
 
     public void updateContent(UpdateRequest updateRequest) {
