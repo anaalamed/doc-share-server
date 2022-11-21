@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class IntegerList {
+public class UserIDList {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
@@ -13,7 +13,7 @@ public class IntegerList {
     @ElementCollection
     private final List<Integer> usersId;
 
-    public IntegerList() {
+    public UserIDList() {
         this.usersId = new ArrayList<>();
     }
 

@@ -36,7 +36,7 @@ public class DocumentEditController {
 
     @MessageMapping("/leave") //TODO: add path 'leave' in client
     public boolean leave(int id, int userId) {
-        logger.info("in leave");
+        logger.info("in leave()");
         if (documentService.leave(id, userId)) {
             logger.info("user" + userId + "leave");
             return true;
@@ -49,7 +49,7 @@ public class DocumentEditController {
     @MessageMapping("/update")
     @SendTo("/topic/updates")
     public UpdateRequest update(UpdateRequest updateRequest){
-        logger.info("in update");
+        logger.info("in update()");
         logger.info("update message:" + updateRequest.getContent());
 //        documentService.update(id, updateRequest);
         return updateRequest;

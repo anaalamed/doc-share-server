@@ -2,7 +2,7 @@ package docSharing.entities.document;
 
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.Permission;
-import docSharing.entities.IntegerList;
+import docSharing.entities.UserIDList;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -25,7 +25,7 @@ public class Document extends File {
     @MapKeyColumn(name = "permission")
     @Column(name = "authorized")
     @MapKeyEnumerated
-    private Map<Permission, IntegerList> authorized = new HashMap<>();
+    private Map<Permission, UserIDList> authorized = new HashMap<>();
 
     @Transient
     private final List<Integer> activeUsers;
@@ -44,7 +44,7 @@ public class Document extends File {
         this.content = new Content();
 
         for (Permission permission : Permission.values()) {
-            this.authorized.put(permission, new IntegerList());
+            this.authorized.put(permission, new UserIDList());
         }
 
         this.authorized.get(Permission.OWNER).add(ownerId);
