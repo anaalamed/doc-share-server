@@ -1,98 +1,58 @@
 package docSharing.entities.document;
-
-import docSharing.entities.Permission;
 import docSharing.entities.User;
-import docSharing.entities.UsersList;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.FileSystems;
 
 @Entity
-@Table(name = "file")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class File {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
+
     @Column(unique = true)
     private String url;
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "authorized_users_mapping",
-            joinColumns = {@JoinColumn(name = "file_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "users_list_id", referencedColumnName = "id")})
-    @MapKeyColumn(name = "permission")
-    @Column(name = "users")
-    @MapKeyEnumerated
-    private Map<Permission, UsersList> authorized = new HashMap<>();
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "metadata_id", referencedColumnName = "id")
     private MetaData metadata;
-    @ElementCollection
-    private final List<UpdateLog> updateLogs;
-    @ElementCollection
-    private final List<User> activeUsers;
 
     private File() {
-        for (Permission permission : Permission.values()) {
-            this.authorized.put(permission, new UsersList());
-        }
-
-        this.updateLogs = new ArrayList<>();
-        this.activeUsers = new ArrayList<>();
     }
 
-    public File(User user, File parent, String title, String url) {
-        this();
-        this.url = url;
-        this.metadata = new MetaData(this, parent, title, user);
-        this.authorized.get(Permission.OWNER).add(user);
-    }
-
-    public int getId() {
-        return id;
+    public File(User owner, Folder parent, String title) {
+        this.metadata = new MetaData(this, parent, title, owner);
+        generateUrl();
     }
 
     public String getUrl() {
         return url;
     }
 
-    public Map<Permission, UsersList> getAuthorized() {
-        return authorized;
-    }
-
     public MetaData getMetadata() {
         return metadata;
     }
 
-    public List<UpdateLog> getUpdateLogs() {
-        return updateLogs;
+    public void setParent(Folder parent) {
+        this.metadata.setParent(parent);
+        generateUrl();
     }
 
-    public List<User> getActiveUsers() {
-        return activeUsers;
+    public void setTitle(String title) {
+        this.metadata.setTitle(title);
+        generateUrl();
     }
 
-    public void addActiveUser(User user) {
-        if (!this.activeUsers.contains(user)) {
-            this.activeUsers.add(user);
-        }
-    }
+    private void generateUrl() {
+        String url = this.metadata.getTitle();
+        File parent = this.metadata.getParent();
 
-    public void removeActiveUser(User user) {
-        if (this.activeUsers.contains(user)) {
-            this.activeUsers.remove(user);
-        }
-    }
-
-    public void updatePermission(User user, Permission permission) {
-        for (Permission permissionType : Permission.values()) {
-            if (this.authorized.get(permissionType).contains(user)) {
-                this.authorized.get(permissionType).remove(user);
-            }
+        while (parent != null) {
+            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
+            parent = parent.getMetadata().getParent();
         }
 
-        this.authorized.get(permission).add(user);
+        this.url = url;
     }
 }

@@ -1,5 +1,6 @@
 package docSharing.service;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import docSharing.controller.request.UserRequest;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
@@ -17,6 +18,9 @@ import org.springframework.stereotype.Service;
 import java.sql.SQLDataException;
 import java.sql.Timestamp;
 import java.util.*;
+
+import static docSharing.utils.Utils.hashPassword;
+import static docSharing.utils.Utils.verifyPassword;
 
 @Service
 public class AuthService {
@@ -47,7 +51,7 @@ public class AuthService {
         }
 
         logger.debug(userRequest);
-        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), userRequest.getPassword()));
+        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), hashPassword(userRequest.getPassword())));
     }
 
     public Optional<String> login(UserRequest userRequest) {
@@ -59,7 +63,7 @@ public class AuthService {
             return Optional.empty();
         }
 
-        if (userByEmail.getPassword().equals(userRequest.getPassword())) {
+        if(verifyPassword(userByEmail.getPassword(), userRequest.getPassword())) {
             Optional<String> token = Optional.of(Utils.generateUniqueToken()) ;
             mapUserTokens.put(userByEmail, token.get());
             return token;
@@ -139,6 +143,5 @@ public class AuthService {
             }
         }
     }
-
 
 }
