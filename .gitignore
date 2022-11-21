@@ -4,3 +4,4 @@ target/
 
 logs
 src/main/resources/application.properties
+src/main/resources/client_secret_695322809754-onh0sumimllsus0b2qotjfts1d9diflr.apps.googleusercontent.com.json
