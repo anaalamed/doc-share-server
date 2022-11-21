@@ -1,5 +1,4 @@
 package docSharing.entities.document;
-import docSharing.entities.User;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -11,8 +10,11 @@ public class Folder extends File {
     @ElementCollection
     private List<File> subFiles;
 
-    public Folder(User owner, Folder parent, String title) {
-        super(owner, parent, title);
+    public Folder() {
+    }
+
+    public Folder(int ownerId, int parentId, String title) {
+        super(ownerId, parentId, title);
         this.subFiles = new ArrayList<>();
     }
 

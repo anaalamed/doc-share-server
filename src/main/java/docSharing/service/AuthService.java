@@ -1,6 +1,5 @@
 package docSharing.service;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import docSharing.controller.request.UserRequest;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;

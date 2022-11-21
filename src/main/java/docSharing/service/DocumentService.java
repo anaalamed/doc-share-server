@@ -2,34 +2,39 @@ package docSharing.service;
 
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.Permission;
-import docSharing.entities.User;
 import docSharing.entities.document.Document;
+import docSharing.entities.document.File;
 import docSharing.entities.document.Folder;
 import docSharing.repository.DocumentRepository;
+import docSharing.repository.FolderRepository;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.FileSystems;
 
 @Service
 public class DocumentService {
     private final DocumentRepository documentRepository;
+    private final FolderRepository folderRepository;
 
-    private DocumentService(DocumentRepository documentRepository) {
+    private DocumentService(DocumentRepository documentRepository, FolderRepository folderRepository) {
         this.documentRepository = documentRepository;
+        this.folderRepository = folderRepository;
     }
 
-    public boolean join(int id, User user) {
+    public boolean join(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
-        document.addActiveUser(user);
+        document.addActiveUser(userId);
         Document savedDocument = documentRepository.save(document);
 
-        return savedDocument.isActiveUser(user);
+        return savedDocument.isActiveUser(userId);
     }
 
-    public boolean leave(int id, User user) {
+    public boolean leave(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
-        document.removeActiveUser(user);
+        document.removeActiveUser(userId);
         Document savedDocument = documentRepository.save(document);
 
-        return !savedDocument.isActiveUser(user);
+        return !savedDocument.isActiveUser(userId);
     }
 
     public Document update(int id, UpdateRequest updateRequest) {
@@ -39,14 +44,14 @@ public class DocumentService {
         return documentRepository.save(document);
     }
 
-    public Document createDocument(User owner, Folder parent, String title) {
-        Document document = new Document(owner, parent, title);
+    public Document createDocument(int ownerId, int parentId, String title) {
+        Document document = new Document(ownerId, parentId, title);
         return documentRepository.save(document);
     }
 
-    public boolean delete(int id, User user) {
+    public boolean delete(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
-        if (!(document.hasPermission(user, Permission.OWNER) || document.hasPermission(user, Permission.EDITOR))) {
+        if (!(document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR))) {
             return false;
         }
 
@@ -59,15 +64,40 @@ public class DocumentService {
         return true;
     }
 
-    public boolean updatePermission(int id, User owner, User user, Permission permission) {
+    public boolean updatePermission(int id, int ownerId, int userId, Permission permission) {
         Document document = documentRepository.getReferenceById(id);
-        if (!document.hasPermission(owner, Permission.OWNER)) {
+        if (!document.hasPermission(ownerId, Permission.OWNER)) {
             return false;
         }
 
-        document.updatePermission(user, permission);
+        document.updatePermission(userId, permission);
         Document savedDocument = documentRepository.save(document);
 
-        return savedDocument.hasPermission(user, permission);
+        return savedDocument.hasPermission(userId, permission);
+    }
+
+    public String shareByLink(int id) {
+        Document document = documentRepository.getReferenceById(id);
+        return generateUrl(id);
+    }
+
+    public void shareByEmail(int id, int ownerId, int userId, Permission permission) {
+        updatePermission(id, ownerId, userId, permission);
+
+        // TODO: send email
+    }
+
+        private String generateUrl(int id) {
+            File file = documentRepository.getReferenceById(id);
+            String url = file.getMetadata().getTitle();
+
+            while (file.getMetadata().getParentId() > 0) {
+                Folder parent = folderRepository.getReferenceById(file.getMetadata().getParentId());
+
+                url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
+                file = parent;
+            }
+
+        return url;
     }
 }

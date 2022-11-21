@@ -14,12 +14,12 @@ public class FolderService {
         this.folderRepository = folderRepository;
     }
 
-    public Folder createFolder(User owner, Folder parent, String title) {
-        Folder folder = new Folder(owner, parent, title);
+    public Folder createFolder(int ownerId, int parentId, String title) {
+        Folder folder = new Folder(ownerId, parentId, title);
         return folderRepository.save(folder);
     }
 
-    public boolean delete(int id, User user) {
+    public boolean delete(int id) {
         boolean success = true;
 
         Folder folder = folderRepository.getReferenceById(id);

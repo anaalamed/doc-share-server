@@ -1,7 +1,6 @@
 package docSharing.controller;
 
 import docSharing.controller.response.BaseResponse;
-import docSharing.entities.User;
 import docSharing.entities.document.Folder;
 import docSharing.service.FolderService;
 import org.apache.logging.log4j.LogManager;
@@ -23,28 +22,27 @@ public class FolderController {
     }
 
     @RequestMapping(method = RequestMethod.POST, path="/create")
-    public ResponseEntity<BaseResponse<Folder>> create(@RequestParam User owner,
-                                                         @RequestParam Folder parent, @RequestParam String title) {
-        logger.info("in create");
-        if(!owner.equals(null)) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("NULL user trying to create folder!"));
+    public ResponseEntity<BaseResponse<Folder>> create(@RequestParam int ownerId,
+                                                         @RequestParam int parentId, @RequestParam String title) {
+        logger.info("in create()");
+
+        if (title.equals("")) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Title cannot be empty!"));
         }
-        if(title.equals("")) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("The title is empty!"));
-        }
-        logger.info("folder: "+title+"created");
-        return ResponseEntity.ok(BaseResponse.success(folderService.createFolder(owner, parent, title)));
+
+        logger.info("folder: " + title + " was successfully created");
+
+        return ResponseEntity.ok(BaseResponse.success(folderService.createFolder(ownerId, parentId, title)));
     }
 
-    @RequestMapping(method = RequestMethod.DELETE,path="/delete")
-    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int id, @RequestParam User user){
-        logger.info("in delete");
-        if(folderService.delete(id,user)) {
-            return ResponseEntity.ok(BaseResponse.noContent(true, "folder deleted"));
-        }
-        else {
+    @RequestMapping(method = RequestMethod.DELETE, path="/delete")
+    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int id) {
+        logger.info("in delete()");
+
+        if (folderService.delete(id)) {
+            return ResponseEntity.ok(BaseResponse.noContent(true, "Folder was successfully deleted"));
+        } else {
             return ResponseEntity.badRequest().body(BaseResponse.failure("The deletion failed"));
         }
-
     }
 }
