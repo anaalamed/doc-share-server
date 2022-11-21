@@ -1,12 +1,18 @@
 package docSharing.utils;
 
+import docSharing.entities.User;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
 import java.time.Instant;
 import java.util.UUID;
 
 public class Utils {
-
     public static String generateUniqueToken() {
         StringBuilder token = new StringBuilder();
         long currentTimeInMilisecond = Instant.now().toEpochMilli();
@@ -15,11 +21,11 @@ public class Utils {
                 .append(UUID.randomUUID().toString()).toString();
     }
 
-    public static String hashPassword(String password){
+    public static String hashPassword(String password) {
         return BCrypt.withDefaults().hashToString(12, password.toCharArray());
     }
 
-    public static boolean verifyPassword(String passwordFromUser, String PasswordFromDB){
+    public static boolean verifyPassword(String passwordFromUser, String PasswordFromDB) {
         BCrypt.Result result = BCrypt.verifyer().verify(passwordFromUser.toCharArray(),
                 PasswordFromDB.toCharArray());
 
