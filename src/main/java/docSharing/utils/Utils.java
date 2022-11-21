@@ -1,5 +1,7 @@
 package docSharing.utils;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -11,5 +13,16 @@ public class Utils {
 
         return token.append(currentTimeInMilisecond).append("-")
                 .append(UUID.randomUUID().toString()).toString();
+    }
+
+    public static String hashPassword(String password){
+        return BCrypt.withDefaults().hashToString(12, password.toCharArray());
+    }
+
+    public static boolean verifyPassword(String passwordFromUser, String PasswordFromDB){
+        BCrypt.Result result = BCrypt.verifyer().verify(passwordFromUser.toCharArray(),
+                PasswordFromDB.toCharArray());
+
+        return result.verified;
     }
 }

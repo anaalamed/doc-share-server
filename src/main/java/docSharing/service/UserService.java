@@ -1,5 +1,6 @@
 package docSharing.service;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import docSharing.entities.User;
 import docSharing.repository.UserRepository;
 import org.apache.logging.log4j.LogManager;
@@ -7,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static docSharing.utils.Utils.hashPassword;
 
 @Service
 public class UserService {
@@ -55,7 +58,7 @@ public class UserService {
     }
 
     public Optional<User> updatePassword(int id, String password) {
-        int lines = userRepository.updateUserPasswordById(id, password);
+        int lines = userRepository.updateUserPasswordById(id,hashPassword(password));
         logger.debug("lines updated: " + lines);
 
         return getUpdatedUser(id, lines);
@@ -72,8 +75,5 @@ public class UserService {
 
         return Optional.empty();
     }
-
-
-
 
 }
