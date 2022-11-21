@@ -13,14 +13,18 @@ public class User {
     @Column(unique = true)
     private String email;
     private String password;
+    @Column(name = "enabled")
+    private boolean enabled;
 
     public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.enabled = false;
     }
 
     public User() {
+        this.enabled = false;
     }
 
 
@@ -51,6 +55,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setEnabled(boolean b) {
+        this.enabled = true;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     @Override
@@ -84,4 +96,5 @@ public class User {
                 ", password='" + password + '\'' +
                 '}';
     }
+
 }
