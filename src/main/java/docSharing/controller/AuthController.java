@@ -7,6 +7,7 @@ import docSharing.controller.response.BaseResponse;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
 import docSharing.service.AuthService;
+import docSharing.service.UserService;
 import docSharing.utils.InputValidation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,10 +32,11 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-//    @Autowired
-//    ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private UserService userService;
 
     private static final Logger logger = LogManager.getLogger(AuthController.class.getName());
+
 
     @RequestMapping(method = RequestMethod.POST, path = "/signup")
     public ResponseEntity<BaseResponse<User>> register(@RequestBody UserRequest userRequest, HttpServletRequest request){
@@ -52,8 +54,7 @@ public class AuthController {
             }
 
             User createdUser = authService.createUser(userRequest);
-            String appUrl = request.getContextPath();
-            authService.publishRegistrationEvent(createdUser, request.getLocale(), appUrl);
+            authService.publishRegistrationEvent(createdUser, request.getLocale(), request.getContextPath());
             return ResponseEntity.ok(BaseResponse.success(createdUser));
         } catch (SQLDataException e) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Email already exists"));
@@ -87,7 +88,7 @@ public class AuthController {
 
 
     @GetMapping("/registrationConfirm")
-    public String confirmRegistration(WebRequest request, Model model, @RequestParam("token") String token) {
+    public String confirmRegistration(WebRequest request, @RequestParam("token") String token) {
 
         Locale locale = request.getLocale();
 
@@ -102,8 +103,7 @@ public class AuthController {
             return "redirect:/badUser.html?lang=" + locale.getLanguage();
         }
 
-        user.setEnabled(true);
-        authService.saveRegisteredUser(user);
+        userService.updateEnabled(user.getId(), true);
         authService.deleteVerificationToken(token);
         return "redirect:/login.html?lang=" + request.getLocale().getLanguage();
     }

@@ -5,7 +5,7 @@ import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
 import docSharing.repository.UserRepository;
 import docSharing.repository.VerificationTokenRepository;
-import docSharing.utils.emailActivation.OnRegistrationCompleteEvent;
+import docSharing.events.emailActivation.OnRegistrationCompleteEvent;
 import docSharing.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,8 +15,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLDataException;
+import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -82,14 +82,10 @@ public class AuthService {
 
 
 
-    // ------------------ verification token ------------------
-    public User getUser(String verificationToken) {
-        User user = tokenRepository.findByToken(verificationToken).getUser();
-        return user;
-    }
+    // ------------------ verification token ------------------ //
 
-    public VerificationToken getVerificationToken(String VerificationToken) {
-        return tokenRepository.findByToken(VerificationToken);
+    public void publishRegistrationEvent(User createdUser, Locale locale, String appUrl  ) {
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(createdUser, locale, appUrl));
     }
 
     public void createVerificationToken(User user, String token) {
@@ -97,8 +93,8 @@ public class AuthService {
         tokenRepository.save(myToken);
     }
 
-    public void publishRegistrationEvent(User createdUser, Locale locale, String appUrl  ) {
-        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(createdUser, locale, appUrl));
+    public VerificationToken getVerificationToken(String VerificationToken) {
+        return tokenRepository.findByToken(VerificationToken);
     }
 
     public void deleteVerificationToken(String token) {
@@ -109,22 +105,15 @@ public class AuthService {
     @Scheduled(fixedRate = SCHEDULE)
     public void scheduleDeleteNotActivatedUsers() {
         logger.info("---------- in scheduleDeleteNotActivatedUsers-------------");
-        List<VerificationToken> tokens = tokenRepository.findAll();
-
         Calendar cal = Calendar.getInstance();
-        List<VerificationToken> expiredTokens = tokens.stream().
-                filter(token -> token.getExpiryDate().getTime() - cal.getTime().getTime() <= 0)
-                .collect(Collectors.toList());
+        List<VerificationToken> expiredTokens = tokenRepository.findAllExpired(new Timestamp(cal.getTime().getTime()));
+        logger.debug(expiredTokens);
 
         for (VerificationToken token: expiredTokens) {
             deleteVerificationToken(token.getToken());
             userRepository.deleteById(token.getUser().getId());
-            logger.debug("verification token for user_id#" + token.getUser().getId() + " and non activated user was deleted");
+            logger.debug("Verification token for user_id#" + token.getUser().getId() + " and non activated user was deleted");
         }
-    }
-
-    public void saveRegisteredUser(User user) {
-        userRepository.save(user);
     }
 
 

@@ -1,4 +1,4 @@
-package docSharing.utils.emailActivation;
+package docSharing.utils;
 
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -31,7 +31,7 @@ import static javax.mail.Message.RecipientType.TO;
 
 public class GMailer {
 
-    private static final String TEST_EMAIL = "anaalamed@gmail.com";
+    private static final String FROM_EMAIL = "anaalamed@gmail.com";
     private final Gmail service;
 
     public GMailer() throws Exception {
@@ -60,7 +60,7 @@ public class GMailer {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage email = new MimeMessage(session);
-        email.setFrom(new InternetAddress(TEST_EMAIL));
+        email.setFrom(new InternetAddress(FROM_EMAIL));
         email.addRecipient(TO, new InternetAddress(emailAddress));
         email.setSubject(subject);
         email.setText(message);
@@ -85,11 +85,5 @@ public class GMailer {
             }
         }
     }
-
-//    public static void main(String[] args) throws Exception {
-//        String token = UUID.randomUUID().toString();
-//        String link ="http://localhost:8080" + "/registrationConfirm?token=" + token;
-//        new GMailer().sendMail("Email Activation", "Please follow the link to activate your account" + link );
-//    }
 
 }

@@ -61,6 +61,13 @@ public class UserService {
         return getUpdatedUser(id, lines);
     }
 
+    public Optional<User> updateEnabled(int id, Boolean enabled) {
+        int lines = userRepository.updateUserEnabledById(id, enabled);
+        logger.debug("lines updated: " + lines);
+
+        return getUpdatedUser(id, lines);
+    }
+
 
     // -------------------- help methods --------------------------- //
     private Optional<User> getUpdatedUser(int id, int lines) {

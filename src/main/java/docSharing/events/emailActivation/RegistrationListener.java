@@ -1,9 +1,8 @@
-package docSharing.utils.emailActivation;
+package docSharing.events.emailActivation;
 
 import docSharing.entities.User;
 import docSharing.service.AuthService;
-import docSharing.utils.emailActivation.GMailer;
-import docSharing.utils.emailActivation.OnRegistrationCompleteEvent;
+import docSharing.utils.GMailer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -33,7 +32,6 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
         String email = user.getEmail();
         String subject = "Registration Confirmation";
         String confirmationUrl = "localhost:8080/" + event.getAppUrl() + "auth/registrationConfirm?token=" + token;
-//        String message = messages.getMessage("message.regSucc", null, event.getLocale());
 
         new GMailer().sendMail(email, subject, "Please follow the link to activate your account: " + confirmationUrl );
     }
