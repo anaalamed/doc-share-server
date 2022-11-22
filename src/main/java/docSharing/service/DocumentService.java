@@ -10,6 +10,7 @@ import docSharing.entities.document.Folder;
 import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import docSharing.utils.GMailer;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
@@ -68,6 +69,46 @@ public class DocumentService {
         return true;
     }
 
+    public void setParent(int id, int parentId, int userId) {
+        Document document = documentRepository.getReferenceById(id);
+        if (!(document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR))) {
+            throw new IllegalArgumentException(String.format("User: %d does not have permission for this operation!", userId));
+        }
+
+        if (parentId > 0 &&
+                isTitleExistsInFolder(document.getMetadata().getTitle(), folderRepository.getReferenceById(parentId))) {
+            throw new IllegalArgumentException(String.format("File with title: %s already exists in that folder!",
+                    document.getMetadata().getTitle()));
+        }
+
+        document.setParentId(parentId);
+    }
+
+    public void setTitle(int id, String title, int userId) {
+        Document document = documentRepository.getReferenceById(id);
+        if (!(document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR))) {
+            throw new IllegalArgumentException(String.format("User: %d does not have permission for this operation!", userId));
+        }
+
+        int parentId = document.getMetadata().getParentId();
+        if (parentId > 0 &&
+                isTitleExistsInFolder(title, folderRepository.getReferenceById(parentId))) {
+            throw new IllegalArgumentException(String.format("File with title: %s already exists in that folder!", title));
+        }
+
+        document.setTitle(title);
+    }
+
+    private boolean isTitleExistsInFolder(String title, Folder folder) {
+        for (File file : folder.getSubFiles()) {
+            if (file.getMetadata().getTitle().equals(title)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean updatePermission(int documentId, int ownerId, User user, Permission permission) {
         Optional<Document> document = documentRepository.findById(documentId);
 
@@ -81,7 +122,7 @@ public class DocumentService {
         return savedDocument.hasPermission(user.getId(), permission);
     }
 
-    public boolean share(ShareRequest shareRequest) {
+    public boolean share(@NotNull ShareRequest shareRequest) {
         boolean success = true;
 
         for (User user : shareRequest.getUsers()) {
@@ -126,4 +167,6 @@ public class DocumentService {
 
         return url;
     }
+
+
 }
