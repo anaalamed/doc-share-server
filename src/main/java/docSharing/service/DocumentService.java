@@ -12,7 +12,9 @@ import docSharing.repository.FolderRepository;
 import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.FileSystems;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.Optional;
 
 @Service
@@ -126,4 +128,26 @@ public class DocumentService {
 
         return url;
     }
+    public void exportFile(String content){
+        String fileToWrite = "C:/Users/Desktop/ExportedDataFromDoc.txt";
+        FileWriter fw;
+        try {
+            fw = new FileWriter(fileToWrite);
+            fw.write(content);
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String importFile(String path){
+        String str = "";
+        try {
+            str = new String(Files.readAllBytes(Paths.get(path)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return str;
+    }
+
 }

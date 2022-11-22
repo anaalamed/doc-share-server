@@ -54,4 +54,20 @@ public class DocumentEditController {
 //        documentService.update(id, updateRequest);
         return updateRequest;
     }
+
+    @MessageMapping("/import")//TODO: implement path on client
+    @SendTo("/topic/import")
+    public UpdateRequest importFile(String filePath, UpdateRequest updateRequest) {
+        String content = documentService.importFile(filePath);
+        updateRequest.setContent(content);
+        return updateRequest;
+    }
+
+    @MessageMapping("/export")//TODO: implement path on client
+    @SendTo("/topic/export")
+    public UpdateRequest exportFile(UpdateRequest updateRequest) {
+        String content = updateRequest.getContent();
+        documentService.exportFile(content);
+        return updateRequest;
+    }
 }
