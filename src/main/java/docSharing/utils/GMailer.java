@@ -1,6 +1,5 @@
 package docSharing.utils;
 
-
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -32,19 +31,21 @@ import static javax.mail.Message.RecipientType.TO;
 public class GMailer {
 
     private static final String FROM_EMAIL = "anaalamed@gmail.com";
-    private final Gmail service;
 
-    public GMailer() throws Exception {
+    private static Gmail init() throws Exception {
         NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-        service = new Gmail.Builder(httpTransport, jsonFactory, getCredentials(httpTransport, jsonFactory))
+        Gmail service = new Gmail.Builder(httpTransport, jsonFactory, getCredentials(httpTransport, jsonFactory))
                 .setApplicationName("Test Mailer")
                 .build();
+
+        return service;
     }
 
     private static Credential getCredentials(final NetHttpTransport httpTransport, GsonFactory jsonFactory)
             throws IOException {
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(GMailer.class.getResourceAsStream("/client_secret_695322809754-onh0sumimllsus0b2qotjfts1d9diflr.apps.googleusercontent.com.json")));
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(GMailer.class
+                .getResourceAsStream("/client_secret_695322809754-onh0sumimllsus0b2qotjfts1d9diflr.apps.googleusercontent.com.json")));
 
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 httpTransport, jsonFactory, clientSecrets, Set.of(GMAIL_SEND))
@@ -56,7 +57,8 @@ public class GMailer {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    public void sendMail(String emailAddress, String subject, String message) throws Exception {
+    public static void sendMail(String emailAddress, String subject, String message) throws Exception {
+        Gmail service = init();
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage email = new MimeMessage(session);
@@ -85,5 +87,4 @@ public class GMailer {
             }
         }
     }
-
 }
