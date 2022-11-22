@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
@@ -43,13 +42,13 @@ public class AuthController {
         try {
             logger.info("in register");
 
-            if (userRequest.getEmail() == null | !InputValidation.isValidEmail(userRequest.getEmail())) {
+            if (userRequest.getEmail() == null || !InputValidation.isValidEmail(userRequest.getEmail())) {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email address!"));
             }
-            if (userRequest.getName() == null | !InputValidation.isValidName(userRequest.getName())) {
+            if (userRequest.getName() == null || !InputValidation.isValidName(userRequest.getName())) {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
             }
-            if (userRequest.getPassword() == null | !InputValidation.isValidPassword(userRequest.getPassword())) {
+            if (userRequest.getPassword() == null || !InputValidation.isValidPassword(userRequest.getPassword())) {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
             }
 
@@ -65,10 +64,10 @@ public class AuthController {
     public  ResponseEntity<BaseResponse<String>> login(@RequestBody UserRequest userRequest){
         logger.info("in login");
 
-        if (userRequest.getEmail() == null | !InputValidation.isValidEmail(userRequest.getEmail())) {
+        if (userRequest.getEmail() == null || !InputValidation.isValidEmail(userRequest.getEmail())) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
         }
-        if (userRequest.getPassword() == null | !InputValidation.isValidPassword(userRequest.getPassword())) {
+        if (userRequest.getPassword() == null || !InputValidation.isValidPassword(userRequest.getPassword())) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 

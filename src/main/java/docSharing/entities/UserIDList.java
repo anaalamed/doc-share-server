@@ -11,21 +11,21 @@ public class UserIDList {
     @Column(name = "id")
     private int id;
     @ElementCollection
-    private final List<Integer> usersId;
+    private final List<Integer> usersIdList;
 
     public UserIDList() {
-        this.usersId = new ArrayList<>();
+        this.usersIdList = new ArrayList<>();
     }
 
     public void add(int userId) {
-        this.usersId.add(userId);
+        this.usersIdList.add(userId);
     }
 
-    public void remove(int userId) {
-        this.usersId.remove(userId);
+    public void remove(Integer userId) {
+        this.usersIdList.remove(userId);
     }
 
     public boolean contains(int userId) {
-        return this.usersId.contains(userId);
+        return this.usersIdList.contains(userId);
     }
 }

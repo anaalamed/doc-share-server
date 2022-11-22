@@ -9,9 +9,7 @@ import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import org.springframework.stereotype.Service;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
 
 @Service
 public class DocumentService {
@@ -83,11 +81,10 @@ public class DocumentService {
         return generateUrl(id);
     }
 
-    public boolean shareByEmail(int id, int ownerId, int userId, Permission permission) {
+    public void shareByEmail(int id, int ownerId, int userId, Permission permission) {
         updatePermission(id, ownerId, userId, permission);
 
-        // TODO: send email if email failed return false
-        return true;
+        // TODO: send email
     }
 
         private String generateUrl(int id) {
