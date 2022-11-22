@@ -45,6 +45,10 @@ public class DocumentController {
     public ResponseEntity<BaseResponse<Void>> share(@RequestBody ShareRequest shareRequest) {
         logger.info("in share()");
 
+        if (!documentService.hasEditPermission(shareRequest.getDocumentID(), shareRequest.getOwnerID())) {
+            return getNoEditPermissionResponse(shareRequest.getOwnerID());
+        }
+
         if (shareHandler(shareRequest)) {
             return ResponseEntity.ok(BaseResponse.noContent(true, "Share by email succeed for all users"));
         } else {
@@ -59,12 +63,50 @@ public class DocumentController {
         return ResponseEntity.ok(BaseResponse.success(documentService.generateUrl(documentId)));
     }
 
-    @RequestMapping(method = RequestMethod.DELETE,path="/delete")
-    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int id, @RequestParam int userId) {
+    @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
+    public ResponseEntity<BaseResponse<Void>> setParent(@RequestHeader int documentId, @RequestHeader int userId,
+                                                        @RequestParam int parentId) {
+        logger.info("in setParent()");
+
+        if (!documentService.hasEditPermission(documentId, userId)) {
+            return getNoEditPermissionResponse(userId);
+        }
+
+        try {
+            documentService.setParent(documentId, parentId, userId);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(BaseResponse.noContent(true, "Parent ID is now: " + parentId));
+    }
+
+    @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
+    public ResponseEntity<BaseResponse<Document>> setTitle(@RequestHeader int documentId, @RequestHeader int userId,
+                                                        @RequestParam String title) {
+        logger.info("in setTitle()");
+
+        if (!documentService.hasEditPermission(documentId, userId)) {
+            return getNoEditPermissionResponse(userId);
+        }
+
+        try {
+            return ResponseEntity.ok(BaseResponse.success(documentService.setTitle(documentId, title, userId)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, path="/delete")
+    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int documentId, @RequestParam int userId) {
 
         logger.info("in delete()");
 
-        if(documentService.delete(id, userId)) {
+        if (!documentService.hasEditPermission(documentId, userId)) {
+            return getNoEditPermissionResponse(userId);
+        }
+
+        if (documentService.delete(documentId, userId)) {
             return ResponseEntity.ok(BaseResponse.noContent(true, "document was successfully deleted"));
         }
         else {
@@ -87,5 +129,10 @@ public class DocumentController {
         }
 
         return allSucceed && documentService.share(shareRequest);
+    }
+
+    private <T> ResponseEntity<BaseResponse<T>> getNoEditPermissionResponse(int userId) {
+        return ResponseEntity.badRequest().body(BaseResponse.failure(
+                String.format("User: %d does not have edit permission for this document!", userId)));
     }
 }

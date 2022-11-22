@@ -50,15 +50,13 @@ public class DocumentService {
     }
 
     public Document createDocument(int ownerId, int parentId, String title) {
+
         Document document = new Document(ownerId, parentId, title);
         return documentRepository.save(document);
     }
 
     public boolean delete(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
-        if (!(document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR))) {
-            return false;
-        }
 
         try {
             documentRepository.delete(document);
@@ -71,9 +69,6 @@ public class DocumentService {
 
     public void setParent(int id, int parentId, int userId) {
         Document document = documentRepository.getReferenceById(id);
-        if (!(document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR))) {
-            throw new IllegalArgumentException(String.format("User: %d does not have permission for this operation!", userId));
-        }
 
         if (parentId > 0 &&
                 isTitleExistsInFolder(document.getMetadata().getTitle(), folderRepository.getReferenceById(parentId))) {
@@ -84,11 +79,8 @@ public class DocumentService {
         document.setParentId(parentId);
     }
 
-    public void setTitle(int id, String title, int userId) {
+    public Document setTitle(int id, String title, int userId) {
         Document document = documentRepository.getReferenceById(id);
-        if (!(document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR))) {
-            throw new IllegalArgumentException(String.format("User: %d does not have permission for this operation!", userId));
-        }
 
         int parentId = document.getMetadata().getParentId();
         if (parentId > 0 &&
@@ -97,6 +89,7 @@ public class DocumentService {
         }
 
         document.setTitle(title);
+        return document;
     }
 
     private boolean isTitleExistsInFolder(String title, Folder folder) {
@@ -168,5 +161,8 @@ public class DocumentService {
         return url;
     }
 
-
+    public boolean hasEditPermission(int documentId, int userId) {
+        Document document = documentRepository.getReferenceById(documentId);
+        return document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR);
+    }
 }
