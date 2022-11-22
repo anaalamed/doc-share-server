@@ -15,7 +15,7 @@ public class InputValidation {
     }
 
     public static boolean isValidName(String name) {
-        String regexPattern = "[a-zA-Z]{3,30}";                   // only letters. length: 3-30
+        String regexPattern = "[ a-zA-Z]{3,30}";                   // only letters. length: 3-30
         if (patternMatches(name, regexPattern)) {
             return true;
         }

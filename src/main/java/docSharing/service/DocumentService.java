@@ -1,15 +1,19 @@
 package docSharing.service;
 
+import docSharing.controller.request.ShareRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.Permission;
+import docSharing.entities.User;
 import docSharing.entities.document.Document;
 import docSharing.entities.document.File;
 import docSharing.entities.document.Folder;
 import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
+import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
+import java.util.Optional;
 
 @Service
 public class DocumentService {
@@ -64,39 +68,61 @@ public class DocumentService {
         return true;
     }
 
-    public boolean updatePermission(int id, int ownerId, int userId, Permission permission) {
-        Document document = documentRepository.getReferenceById(id);
-        if (!document.hasPermission(ownerId, Permission.OWNER)) {
+    public boolean updatePermission(int documentId, int ownerId, User user, Permission permission) {
+        Optional<Document> document = documentRepository.findById(documentId);
+
+        if (!document.get().hasPermission(ownerId, Permission.OWNER)) {
             return false;
         }
 
-        document.updatePermission(userId, permission);
-        Document savedDocument = documentRepository.save(document);
+        document.get().updatePermission(user.getId(), permission);
+        Document savedDocument = documentRepository.save(document.get());
 
-        return savedDocument.hasPermission(userId, permission);
+        return savedDocument.hasPermission(user.getId(), permission);
     }
 
-    public String shareByLink(int id) {
-        Document document = documentRepository.getReferenceById(id);
-        return generateUrl(id);
-    }
+    public boolean share(ShareRequest shareRequest) {
+        boolean success = true;
 
-    public void shareByEmail(int id, int ownerId, int userId, Permission permission) {
-        updatePermission(id, ownerId, userId, permission);
-
-        // TODO: send email
-    }
-
-        private String generateUrl(int id) {
-            File file = documentRepository.getReferenceById(id);
-            String url = file.getMetadata().getTitle();
-
-            while (file.getMetadata().getParentId() > 0) {
-                Folder parent = folderRepository.getReferenceById(file.getMetadata().getParentId());
-
-                url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
-                file = parent;
+        for (User user : shareRequest.getUsers()) {
+            if (!updatePermission(shareRequest.getDocumentID(), shareRequest.getOwnerID(), user,
+                    shareRequest.getPermission())) {
+                success = false;
+                continue;
             }
+            if (shareRequest.isNotify()) {
+                success = success && notifyShareByEmail(shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
+            }
+        }
+
+        return success;
+    }
+
+    private boolean notifyShareByEmail(int documentId, String email, Permission permission) {
+        Document document = documentRepository.getReferenceById(documentId);
+
+        try {
+            String subject = "Document shared with you: " + document.getMetadata().getTitle();
+            String message = String.format("The document owner has invited you to %s the following document: %s",
+                    permission.toString(), generateUrl(documentId));
+            GMailer.sendMail(email, subject, message);
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public String generateUrl(int id) {
+        File file = documentRepository.getReferenceById(id);
+        String url = file.getMetadata().getTitle();
+
+        while (file.getMetadata().getParentId() > 0) {
+            Folder parent = folderRepository.getReferenceById(file.getMetadata().getParentId());
+
+            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
+            file = parent;
+        }
 
         return url;
     }

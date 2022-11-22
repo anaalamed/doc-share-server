@@ -1,7 +1,18 @@
 package docSharing.entities;
 
 public enum Permission {
-    OWNER,
-    EDITOR,
-    VIEWER
+    OWNER("own"),
+    EDITOR("edit"),
+    VIEWER("view");
+
+    private final String text;
+
+    Permission(final String text) {
+        this.text = text;
+    }
+
+    @Override
+    public String toString() {
+        return text;
+    }
 }
