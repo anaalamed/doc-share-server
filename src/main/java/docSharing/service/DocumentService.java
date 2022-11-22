@@ -9,7 +9,10 @@ import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.FileSystems;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.*;
+
 
 @Service
 public class DocumentService {
