@@ -1,4 +1,5 @@
 package docSharing.entities.document;
+import docSharing.entities.User;
 
 import javax.persistence.*;
 
@@ -16,8 +17,8 @@ public abstract class File {
     protected File() {
     }
 
-    public File(int ownerId, int parentId, String title) {
-        this.metadata = new MetaData(this, parentId, title, ownerId);
+    public File(User owner, Folder parent, String title) {
+        this.metadata = new MetaData(this, parent, title, owner);
     }
 
     public int getId() {
@@ -26,10 +27,6 @@ public abstract class File {
 
     public MetaData getMetadata() {
         return metadata;
-    }
-
-    public void setParentId(int parentId) {
-        this.metadata.setParentId(parentId);
     }
 
     public void setTitle(String title) {

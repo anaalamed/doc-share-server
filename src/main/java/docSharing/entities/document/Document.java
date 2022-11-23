@@ -1,8 +1,10 @@
 package docSharing.entities.document;
 
 import docSharing.controller.request.UpdateRequest;
+import docSharing.entities.User;
 
 import javax.persistence.*;
+import java.nio.file.FileSystems;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +28,8 @@ public class Document extends File {
         this.updateLogs = new ArrayList<>();
     }
 
-    public Document(int ownerId, int parentId, String title) {
-        super(ownerId, parentId, title);
+    public Document(User owner, Folder parent, String title) {
+        super(owner, parent, title);
         this.content = new Content();
         this.activeUsers = new ArrayList<>();
         this.updateLogs = new ArrayList<>();
@@ -55,6 +57,18 @@ public class Document extends File {
         if (this.activeUsers.contains(userId)) {
             this.activeUsers.remove(userId);
         }
+    }
+
+    public String generateUrl() {
+        Folder parent = this.getMetadata().getParent();
+        String url = this.getMetadata().getTitle();
+
+        while (parent != null) {
+            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
+            parent = parent.getMetadata().getParent();
+        }
+
+        return url;
     }
 
     public boolean isActiveUser(int userId) {

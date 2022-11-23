@@ -69,7 +69,7 @@ public class DocumentController {
 
             if (shareRequest.isNotify()) {
                 allSucceed = allSucceed &&
-                        documentService.notifyShareByEmail
+                        permissionService.notifyShareByEmail
                                 (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
             }
         }
@@ -85,7 +85,7 @@ public class DocumentController {
     public ResponseEntity<BaseResponse<String>> getUrl(@RequestHeader int documentId) {
         logger.info("in getUrl()");
 
-        return ResponseEntity.ok(BaseResponse.success(documentService.generateUrl(documentId)));
+        return ResponseEntity.ok(BaseResponse.success(documentService.getUrl(documentId)));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, path="/setParent")

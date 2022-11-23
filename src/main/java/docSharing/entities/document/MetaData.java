@@ -1,5 +1,7 @@
 package docSharing.entities.document;
 
+import docSharing.entities.User;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 
@@ -9,16 +11,19 @@ public class MetaData {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    @Column(name = "parent_id") //TODO: ManyToOne
-    private int parentId;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "folder_id", referencedColumnName = "id")
+    private Folder parent;
     @Column(name = "created")
     private final LocalDate created;
     @Column(name = "last_updated")
     private LocalDate lastUpdated;
     @Column(name = "title")
     private String title;
-    @Column(name = "owner_id")
-    private int owner_id;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+    private User owner;
     @OneToOne(mappedBy = "metadata")
     private File file;
 
@@ -27,16 +32,16 @@ public class MetaData {
         this.lastUpdated =  LocalDate.now();
     }
 
-    public MetaData(File file, int parentId, String title, int createdBy) {
+    public MetaData(File file, Folder parent, String title, User owner) {
         this();
         this.file = file;
-        this.parentId = parentId;
+        this.parent = parent;
         this.title = title;
-        this.owner_id = createdBy;
+        this.owner = owner;
     }
 
-    public int getParentId() {
-        return parentId;
+    public Folder getParent() {
+        return parent;
     }
 
     public LocalDate getCreated() {
@@ -51,16 +56,16 @@ public class MetaData {
         return title;
     }
 
-    public int getOwner_id() {
-        return owner_id;
+    public User getOwner() {
+        return owner;
     }
 
     public void setLastUpdated(LocalDate lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 
-    protected void setParentId(int parentId) {
-        this.parentId = parentId;
+    public void setParent(Folder parent) {
+        this.parent = parent;
     }
 
     protected void setTitle(String title) {
