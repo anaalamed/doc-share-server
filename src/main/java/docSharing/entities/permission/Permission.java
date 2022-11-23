@@ -1,4 +1,4 @@
-package docSharing.entities;
+package docSharing.entities.permission;
 
 public enum Permission {
     OWNER("own"),

@@ -21,29 +21,19 @@ public class DocumentEditController {
     public DocumentEditController() {
     }
 
-    @MessageMapping("/join")
-    public boolean join(int id, int userId) {
+    // TODO: why join and leave are not REST calls? maybe update should be the only socket call?
+    @MessageMapping("/join/{documentId}")
+    public void join(int id, int userId) {
         logger.info("in join()");
 
-        if (documentService.join(id, userId)) {
-            logger.info("user" + userId + "join");
-            return true;
-        } else {
-            logger.error("user" + userId + "failed to join");
-            return false;
-        }
+        documentService.join(id, userId);
     }
 
     @MessageMapping("/leave") //TODO: add path 'leave' in client
-    public boolean leave(int id, int userId) {
+    public void leave(int id, int userId) {
         logger.info("in leave()");
-        if (documentService.leave(id, userId)) {
-            logger.info("user" + userId + "leave");
-            return true;
-        } else {
-            logger.error("user" + userId + "failed to leave");
-            return false;
-        }
+
+        documentService.leave(id, userId);
     }
 
     @MessageMapping("/update")

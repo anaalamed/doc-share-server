@@ -1,20 +1,16 @@
 package docSharing.service;
 
-import docSharing.controller.request.ShareRequest;
 import docSharing.controller.request.UpdateRequest;
-import docSharing.entities.Permission;
-import docSharing.entities.User;
+import docSharing.entities.permission.Permission;
 import docSharing.entities.document.Document;
 import docSharing.entities.document.File;
 import docSharing.entities.document.Folder;
 import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import docSharing.utils.GMailer;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
-import java.util.Optional;
 
 @Service
 public class DocumentService {
@@ -26,20 +22,14 @@ public class DocumentService {
         this.folderRepository = folderRepository;
     }
 
-    public boolean join(int id, int userId) {
+    public void join(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
         document.addActiveUser(userId);
-        Document savedDocument = documentRepository.save(document);
-
-        return savedDocument.isActiveUser(userId);
     }
 
-    public boolean leave(int id, int userId) {
+    public void leave(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
         document.removeActiveUser(userId);
-        Document savedDocument = documentRepository.save(document);
-
-        return !savedDocument.isActiveUser(userId);
     }
 
     public Document update(int id, UpdateRequest updateRequest) {
@@ -50,12 +40,11 @@ public class DocumentService {
     }
 
     public Document createDocument(int ownerId, int parentId, String title) {
-
         Document document = new Document(ownerId, parentId, title);
         return documentRepository.save(document);
     }
 
-    public boolean delete(int id, int userId) {
+    public boolean delete(int id) {
         Document document = documentRepository.getReferenceById(id);
 
         try {
@@ -67,7 +56,7 @@ public class DocumentService {
         return true;
     }
 
-    public void setParent(int id, int parentId, int userId) {
+    public void setParent(int id, int parentId) {
         Document document = documentRepository.getReferenceById(id);
 
         if (parentId > 0 &&
@@ -79,7 +68,7 @@ public class DocumentService {
         document.setParentId(parentId);
     }
 
-    public Document setTitle(int id, String title, int userId) {
+    public Document setTitle(int id, String title) {
         Document document = documentRepository.getReferenceById(id);
 
         int parentId = document.getMetadata().getParentId();
@@ -102,37 +91,7 @@ public class DocumentService {
         return false;
     }
 
-    public boolean updatePermission(int documentId, int ownerId, User user, Permission permission) {
-        Optional<Document> document = documentRepository.findById(documentId);
-
-        if (!document.get().hasPermission(ownerId, Permission.OWNER)) {
-            return false;
-        }
-
-        document.get().updatePermission(user.getId(), permission);
-        Document savedDocument = documentRepository.save(document.get());
-
-        return savedDocument.hasPermission(user.getId(), permission);
-    }
-
-    public boolean share(@NotNull ShareRequest shareRequest) {
-        boolean success = true;
-
-        for (User user : shareRequest.getUsers()) {
-            if (!updatePermission(shareRequest.getDocumentID(), shareRequest.getOwnerID(), user,
-                    shareRequest.getPermission())) {
-                success = false;
-                continue;
-            }
-            if (shareRequest.isNotify()) {
-                success = success && notifyShareByEmail(shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
-            }
-        }
-
-        return success;
-    }
-
-    private boolean notifyShareByEmail(int documentId, String email, Permission permission) {
+    public boolean notifyShareByEmail(int documentId, String email, Permission permission) {
         Document document = documentRepository.getReferenceById(documentId);
 
         try {
@@ -159,10 +118,5 @@ public class DocumentService {
         }
 
         return url;
-    }
-
-    public boolean hasEditPermission(int documentId, int userId) {
-        Document document = documentRepository.getReferenceById(documentId);
-        return document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR);
     }
 }

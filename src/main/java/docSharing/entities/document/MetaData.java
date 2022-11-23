@@ -9,7 +9,7 @@ public class MetaData {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    @Column(name = "parent_id")
+    @Column(name = "parent_id") //TODO: ManyToOne
     private int parentId;
     @Column(name = "created")
     private final LocalDate created;
