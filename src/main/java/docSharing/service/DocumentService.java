@@ -4,6 +4,7 @@ import docSharing.controller.request.ShareRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.Permission;
 import docSharing.entities.User;
+import docSharing.entities.document.Content;
 import docSharing.entities.document.Document;
 import docSharing.entities.document.File;
 import docSharing.entities.document.Folder;
@@ -128,19 +129,23 @@ public class DocumentService {
 
         return url;
     }
-    public void exportFile(String content){
-        String fileToWrite = "C:/Users/Desktop/ExportedDataFromDoc.txt";
-        FileWriter fw;
-        try {
-            fw = new FileWriter(fileToWrite);
-            fw.write(content);
-            fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+    public Document importFile(String path, int ownerId, int parentID){
+        Document importDocument= new Document(ownerId,parentID, getFileName(path));
+
+        Content content= new Content();
+        content.setContent(getContentFromImportFile(path));
+
+        importDocument.setContent(content);
+        return importDocument;
     }
 
-    public String importFile(String path){
+    private String getFileName(String filePath){
+        Path path = Paths.get(filePath);
+        return path.getFileName().toString();
+    }
+
+    private String getContentFromImportFile(String path){
         String str = "";
         try {
             str = new String(Files.readAllBytes(Paths.get(path)));
@@ -148,6 +153,27 @@ public class DocumentService {
             e.printStackTrace();
         }
         return str;
+    }
+
+    public void exportFile(int documentId){
+        Document document = documentRepository.getReferenceById(documentId);
+
+        String filename=document.getMetadata().getTitle();
+        String content=document.getContent().toString();
+
+        String pathFile = "C:/Users/Downloads/"+filename+".txt";
+        writeToFile(content, pathFile);
+    }
+
+    private void writeToFile(String content, String path){
+        FileWriter fw;
+        try {
+            fw = new FileWriter(path);
+            fw.write(content);
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
