@@ -132,7 +132,6 @@ public class DocumentController {
         }
 
         if (documentService.delete(documentId)) {
-            permissionService.deleteAuthorizationsForDocument(documentId);
             return ResponseEntity.ok(BaseResponse.noContent(true, "document was successfully deleted"));
         }
         else {

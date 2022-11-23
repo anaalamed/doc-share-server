@@ -48,7 +48,6 @@ public class UserController {
         }
 
         if (userService.deleteUser(id)) {
-            permissionService.deleteAuthorizationsForUser(id);
             return ResponseEntity.ok(BaseResponse.noContent(true, "user " + email + " deleted"));
         }
 

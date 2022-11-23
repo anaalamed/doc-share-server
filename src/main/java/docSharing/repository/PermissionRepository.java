@@ -11,12 +11,6 @@ import java.util.List;
 @Repository
 public interface PermissionRepository extends JpaRepository<Authorization, Integer> {
 
-    @Query("SELECT a FROM Authorization a WHERE a.documentId=?1 AND a.userId=?2")
-    List<Authorization> findByDocIdAndUserId(int documentId, int userId);
-
-    @Query(value = "DELETE a FROM Authorization a WHERE a.documentId=?1", nativeQuery = true)
-    void deleteByDocumentId(int documentId);
-
-    @Query(value = "DELETE a FROM Authorization a WHERE a.userId=?1", nativeQuery = true)
-    void deleteByUserId(int userId);
+    @Query("SELECT a FROM Authorization a WHERE a.document.id=?1 AND a.user.id=?2")
+    List<Authorization> findByDocumentAndUser(int documentId, int userId);
 }

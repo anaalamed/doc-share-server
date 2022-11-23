@@ -1,5 +1,8 @@
 package docSharing.entities.permission;
 
+import docSharing.entities.User;
+import docSharing.entities.document.Document;
+
 import javax.persistence.*;
 
 @Entity
@@ -9,11 +12,13 @@ public class Authorization {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    @Column(name = "document_id")
-    private int documentId;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "document_id", referencedColumnName = "id")
+    private Document document;
 
-    @Column(name = "user_id")
-    private int userId;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 
     @Enumerated
     @Column(name = "permission")
@@ -22,9 +27,9 @@ public class Authorization {
     public Authorization() {
     }
 
-    public Authorization(int documentId, int userId, Permission permission) {
-        this.documentId = documentId;
-        this.userId = userId;
+    public Authorization(Document document, User user, Permission permission) {
+        this.document = document;
+        this.user = user;
         this.permission = permission;
     }
 
@@ -32,12 +37,12 @@ public class Authorization {
         return id;
     }
 
-    public int getDocumentId() {
-        return documentId;
+    public Document getDocument() {
+        return document;
     }
 
-    public int getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
     public Permission getPermission() {

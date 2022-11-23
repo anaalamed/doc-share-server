@@ -91,6 +91,7 @@ public class DocumentService {
         return false;
     }
 
+    //TODO: move to PermissionService
     public boolean notifyShareByEmail(int documentId, String email, Permission permission) {
         Document document = documentRepository.getReferenceById(documentId);
 

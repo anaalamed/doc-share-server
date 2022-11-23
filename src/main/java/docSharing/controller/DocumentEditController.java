@@ -22,6 +22,7 @@ public class DocumentEditController {
     }
 
     // TODO: why join and leave are not REST calls? maybe update should be the only socket call?
+    // and: check permissions
     @MessageMapping("/join/{documentId}")
     public void join(int id, int userId) {
         logger.info("in join()");
