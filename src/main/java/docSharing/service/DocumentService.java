@@ -11,14 +11,21 @@ import docSharing.entities.document.Folder;
 import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import docSharing.utils.GMailer;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import static docSharing.utils.ImportExport.*;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+
 @Service
+@Configuration
+@EnableScheduling
 public class DocumentService {
     private final DocumentRepository documentRepository;
     private final FolderRepository folderRepository;
@@ -26,6 +33,45 @@ public class DocumentService {
     private DocumentService(DocumentRepository documentRepository, FolderRepository folderRepository) {
         this.documentRepository = documentRepository;
         this.folderRepository = folderRepository;
+    }
+
+    static Map<Integer,String> documentCacheChanges = new HashMap<>();//doc id, doc content
+    static Map<Integer,String> documentCacheDBContent = new HashMap<>();
+
+    public void update(int documentId, UpdateRequest updateRequest) {
+        Document document = documentRepository.getReferenceById(documentId);
+        document.updateContent(updateRequest);
+
+        UpdateContentOnCache(documentId, document.getContent().getContent());
+    }
+
+    private void UpdateContentOnCache(int documentId, String content){
+        documentCacheChanges.put(documentId,content);
+    }
+
+    private void deleteFromCache(int documentID){
+        documentCacheChanges.remove(documentID);
+        documentCacheDBContent.remove(documentID);
+    }
+
+    @Scheduled(fixedDelay = 10000) //10 seconds
+    private void updateContentOnDB(){
+        documentCacheChanges.forEach((key, value)->{
+            if (!value.equals(documentCacheDBContent.get(key)) || !documentCacheDBContent.containsKey(key)) {
+                saveDocDB(key);
+                documentCacheDBContent.put(key, value);//DB cache update
+            }
+        });
+    }
+
+    private void saveDocDB(int documentId){
+        documentRepository.save(documentRepository.getReferenceById(documentId));
+    }
+
+    public Document createDocument(int ownerId, int parentId, String title) {
+        Document document = new Document(ownerId, parentId, title);
+        UpdateContentOnCache(document.getMetadata().getId(), document.getContent().getContent());
+        return documentRepository.save(document);
     }
 
     public boolean join(int id, int userId) {
@@ -44,18 +90,6 @@ public class DocumentService {
         return !savedDocument.isActiveUser(userId);
     }
 
-    public Document update(int id, UpdateRequest updateRequest) {
-        Document document = documentRepository.getReferenceById(id);
-        document.updateContent(updateRequest);
-
-        return documentRepository.save(document);
-    }
-
-    public Document createDocument(int ownerId, int parentId, String title) {
-        Document document = new Document(ownerId, parentId, title);
-        return documentRepository.save(document);
-    }
-
     public boolean delete(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
         if (!(document.hasPermission(userId, Permission.OWNER) || document.hasPermission(userId, Permission.EDITOR))) {
@@ -64,6 +98,7 @@ public class DocumentService {
 
         try {
             documentRepository.delete(document);
+            deleteFromCache(document.getMetadata().getId());
         } catch (Exception e) {
             return false;
         }
@@ -80,7 +115,6 @@ public class DocumentService {
 
         document.get().updatePermission(user.getId(), permission);
         Document savedDocument = documentRepository.save(document.get());
-
         return savedDocument.hasPermission(user.getId(), permission);
     }
 
@@ -140,21 +174,6 @@ public class DocumentService {
         return importDocument;
     }
 
-    private String getFileName(String filePath){
-        Path path = Paths.get(filePath);
-        return path.getFileName().toString();
-    }
-
-    private String getContentFromImportFile(String path){
-        String str = "";
-        try {
-            str = new String(Files.readAllBytes(Paths.get(path)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return str;
-    }
-
     public void exportFile(int documentId){
         Document document = documentRepository.getReferenceById(documentId);
 
@@ -164,16 +183,4 @@ public class DocumentService {
         String pathFile = "C:/Users/Downloads/"+filename+".txt";
         writeToFile(content, pathFile);
     }
-
-    private void writeToFile(String content, String path){
-        FileWriter fw;
-        try {
-            fw = new FileWriter(path);
-            fw.write(content);
-            fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

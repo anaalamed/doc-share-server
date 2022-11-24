@@ -18,6 +18,9 @@ public class Content {
     public Content() {
         content = "";
     }
+    public Content(String content) {
+        this.content = content;
+    }
 
     public void setContent(String content) {
         this.content = content;
@@ -53,4 +56,6 @@ public class Content {
 
         return this.content;
     }
+
+
 }

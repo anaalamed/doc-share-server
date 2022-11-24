@@ -35,6 +35,10 @@ public class MetaData {
         this.owner_id = createdBy;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public int getParentId() {
         return parentId;
     }
