@@ -42,10 +42,10 @@ public class DocumentService {
         Document document = documentRepository.getReferenceById(documentId);
         document.updateContent(updateRequest);
 
-        UpdateContentOnCache(documentId, document.getContent().getContent());
+        updateContentOnCache(documentId, document.getContent().getContent());
     }
 
-    private void UpdateContentOnCache(int documentId, String content){
+    private void updateContentOnCache(int documentId, String content){
         documentCacheChanges.put(documentId,content);
     }
 
@@ -57,20 +57,20 @@ public class DocumentService {
     @Scheduled(fixedDelay = 10000) //10 seconds
     private void updateContentOnDB(){
         documentCacheChanges.forEach((key, value)->{
-            if (!value.equals(documentCacheDBContent.get(key)) || !documentCacheDBContent.containsKey(key)) {
-                saveDocDB(key);
+            if (!documentCacheDBContent.containsKey(key) || !value.equals(documentCacheDBContent.get(key))) {
+                SaveToDB(key);
                 documentCacheDBContent.put(key, value);//DB cache update
             }
         });
     }
 
-    private void saveDocDB(int documentId){
+    private void SaveToDB(int documentId){
         documentRepository.save(documentRepository.getReferenceById(documentId));
     }
 
     public Document createDocument(int ownerId, int parentId, String title) {
         Document document = new Document(ownerId, parentId, title);
-        UpdateContentOnCache(document.getMetadata().getId(), document.getContent().getContent());
+        updateContentOnCache(document.getId(), document.getContent().getContent());
         return documentRepository.save(document);
     }
 
@@ -98,7 +98,7 @@ public class DocumentService {
 
         try {
             documentRepository.delete(document);
-            deleteFromCache(document.getMetadata().getId());
+            deleteFromCache(document.getId());
         } catch (Exception e) {
             return false;
         }
