@@ -129,12 +129,8 @@ public class DocumentService {
     }
 
     public Document importFile(String path, int ownerId, int parentID){
-        Document importDocument= new Document(ownerId,parentID, getFileName(path));
-
-        Content content= new Content();
-        content.setContent(readFromFile(path));
-
-        importDocument.setContent(content);
+        Document importDocument=createDocument(ownerId,parentID, getFileName(path));
+        importDocument.setContent(readFromFile(path));
         return importDocument;
     }
 
@@ -142,7 +138,7 @@ public class DocumentService {
         Document document = documentRepository.getReferenceById(documentId);
 
         String filename=document.getMetadata().getTitle();
-        String content=document.getContent().toString();
+        String content=document.getContent();
 
         String pathFile = "C:/Users/Downloads/"+filename+".txt";
         writeToFile(content, pathFile);
