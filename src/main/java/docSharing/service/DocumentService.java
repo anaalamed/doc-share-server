@@ -4,7 +4,6 @@ import docSharing.controller.request.ShareRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.Permission;
 import docSharing.entities.User;
-import docSharing.entities.document.Content;
 import docSharing.entities.document.Document;
 import docSharing.entities.document.File;
 import docSharing.entities.document.Folder;
@@ -15,14 +14,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import static docSharing.utils.ImportExport.*;
 
 import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static docSharing.utils.Utils.*;
+import static docSharing.utils.FilesUtils.*;
 
 @Service
 @Configuration
@@ -43,7 +41,7 @@ public class DocumentService {
         Document document = documentRepository.getReferenceById(documentId);
         document.updateContent(updateRequest);
 
-        updateContentOnCache(documentId, document.getContent().getContent());
+        updateContentOnCache(documentId, document.getContent());
     }
 
     private void updateContentOnCache(int documentId, String content){
@@ -59,20 +57,21 @@ public class DocumentService {
     private void updateContentOnDB(){
         documentCacheChanges.forEach((key, value)->{
             if (!documentCacheDBContent.containsKey(key) || !value.equals(documentCacheDBContent.get(key))) {
-                SaveToDB(key, value);
-                documentCacheDBContent.put(key, value);//DB cache update
+                updateContent(key, value);
             }
         });
     }
 
-    private void SaveToDB(int documentId, String content){
-        Document updateDoc=documentRepository.getReferenceById(documentId).setContent(content);
-        documentRepository.save(updateDoc);
+    private void updateContent(int documentId, String content){
+        Document updatedDocument = documentRepository.getReferenceById(documentId);
+        updatedDocument.setContent(content);
+        documentRepository.save(updatedDocument);
+        documentCacheDBContent.put(documentId, content);
     }
 
     public Document createDocument(int ownerId, int parentId, String title) {
         Document document = new Document(ownerId, parentId, title);
-        updateContentOnCache(document.getId(), document.getContent().getContent());
+        updateContentOnCache(document.getId(), document.getContent());
         return documentRepository.save(document);
     }
 

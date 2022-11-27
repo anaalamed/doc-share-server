@@ -6,13 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class ImportExport {
+public class FilesUtils {
     public static String getFileName(String filePath){
         Path path = Paths.get(filePath);
         return path.getFileName().toString();
     }
 
-    public static String getContentFromImportFile(String path){
+    public static String readFromFile(String path){
         String str = "";
         try {
             str = new String(Files.readAllBytes(Paths.get(path)));
