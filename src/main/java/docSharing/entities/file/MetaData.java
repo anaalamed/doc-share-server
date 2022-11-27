@@ -1,4 +1,4 @@
-package docSharing.entities.document;
+package docSharing.entities.file;
 
 import docSharing.entities.User;
 

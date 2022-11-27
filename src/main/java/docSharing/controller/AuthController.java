@@ -1,9 +1,9 @@
 package docSharing.controller;
 
-
 import docSharing.controller.request.UserRequest;
 import docSharing.controller.response.BaseResponse;
 
+import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
 import docSharing.service.AuthService;
@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
-
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLDataException;
@@ -38,7 +37,7 @@ public class AuthController {
 
 
     @RequestMapping(method = RequestMethod.POST, path = "/signup")
-    public ResponseEntity<BaseResponse<User>> register(@RequestBody UserRequest userRequest, HttpServletRequest request){
+    public ResponseEntity<BaseResponse<UserDTO>> register(@RequestBody UserRequest userRequest, HttpServletRequest request){
         try {
             logger.info("in register");
 
@@ -52,7 +51,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
             }
 
-            User createdUser = authService.createUser(userRequest);
+            UserDTO createdUser = authService.createUser(userRequest);
             authService.publishRegistrationEvent(createdUser, request.getLocale(), request.getContextPath());
             return ResponseEntity.ok(BaseResponse.success(createdUser));
         } catch (SQLDataException e) {

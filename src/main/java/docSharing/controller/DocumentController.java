@@ -2,8 +2,8 @@ package docSharing.controller;
 
 import docSharing.controller.request.ShareRequest;
 import docSharing.controller.response.BaseResponse;
-import docSharing.entities.User;
-import docSharing.entities.document.*;
+import docSharing.entities.DTO.UserDTO;
+import docSharing.entities.file.*;
 import docSharing.entities.permission.Permission;
 import docSharing.service.DocumentService;
 import docSharing.service.PermissionService;
@@ -70,8 +70,8 @@ public class DocumentController {
 
         boolean allSucceed = true;
 
-        List<User> users = retrieveShareRequestUsers(shareRequest);
-        for (User user : users) {
+        List<UserDTO> users = retrieveShareRequestUsers(shareRequest);
+        for (UserDTO user : users) {
             permissionService.updatePermission(shareRequest.getDocumentID(), user.getId(), shareRequest.getPermission());
 
             if (shareRequest.isNotify()) {
@@ -144,11 +144,11 @@ public class DocumentController {
         }
     }
 
-    private List<User> retrieveShareRequestUsers(ShareRequest shareRequest) {
-        List<User> users = new ArrayList<>();
+    private List<UserDTO> retrieveShareRequestUsers(ShareRequest shareRequest) {
+        List<UserDTO> users = new ArrayList<>();
 
         for (String email : shareRequest.getEmails()) {
-            Optional<User> user = userService.getByEmail(email);
+            Optional<UserDTO> user = userService.getByEmail(email);
             if (!user.isPresent()) {
                 logger.warn("Shared via email failed - user: " + email + " does not exist!");
                 continue;

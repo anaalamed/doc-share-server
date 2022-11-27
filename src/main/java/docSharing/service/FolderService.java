@@ -1,9 +1,9 @@
 package docSharing.service;
 
 import docSharing.entities.User;
-import docSharing.entities.document.Document;
-import docSharing.entities.document.File;
-import docSharing.entities.document.Folder;
+import docSharing.entities.file.Document;
+import docSharing.entities.file.File;
+import docSharing.entities.file.Folder;
 import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import docSharing.repository.PermissionRepository;

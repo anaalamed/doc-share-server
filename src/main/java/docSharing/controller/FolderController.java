@@ -1,7 +1,7 @@
 package docSharing.controller;
 
 import docSharing.controller.response.BaseResponse;
-import docSharing.entities.document.Folder;
+import docSharing.entities.file.Folder;
 import docSharing.service.FolderService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

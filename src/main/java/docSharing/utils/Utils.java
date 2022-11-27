@@ -2,8 +2,8 @@ package docSharing.utils;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import docSharing.controller.response.BaseResponse;
-import docSharing.entities.document.File;
-import docSharing.entities.document.Folder;
+import docSharing.entities.file.File;
+import docSharing.entities.file.Folder;
 import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;

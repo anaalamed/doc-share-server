@@ -1,5 +1,6 @@
 package docSharing.events.emailActivation;
 
+import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.User;
 import docSharing.service.AuthService;
 import docSharing.utils.GMailer;

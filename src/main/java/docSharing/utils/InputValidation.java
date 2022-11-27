@@ -23,7 +23,8 @@ public class InputValidation {
     }
 
     public static boolean isValidPassword(String password) {
-        String regexPattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";       // Minimum eight characters, at least one letter and one number:
+        // Minimum eight characters, at least one letter and one number:
+        String regexPattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
         if (patternMatches(password, regexPattern)) {
             return true;
         }
@@ -35,23 +36,4 @@ public class InputValidation {
                 .matcher(fieldToValidate)
                 .matches();
     }
-
-
-//    public static boolean validateUserFields(Field field, String variable) {
-//        switch (field) {
-//            case NAME:
-//                return isValidName(variable);
-//            case EMAIL:
-//                return isValidEmail(variable);
-//            case PASSWORD:
-//                return isValidPassword(variable);
-//            default:
-//                return false;
-//        }
-//    }
-
-
-//    public static boolean validateUserFields(String email, String password) {
-//        return validateEmail(email) && validatePassword(password);
-//    }
 }

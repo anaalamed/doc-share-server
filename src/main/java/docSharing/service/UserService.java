@@ -1,5 +1,6 @@
 package docSharing.service;
 
+import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.User;
 import docSharing.repository.UserRepository;
 import org.apache.logging.log4j.LogManager;
@@ -22,13 +23,13 @@ public class UserService {
     }
 
 
-    public Optional<User> getByEmail(String email) {
+    public Optional<UserDTO> getByEmail(String email) {
         User user = userRepository.findByEmail(email);
         if (user == null) {
             return Optional.empty();
         }
 
-        return Optional.of(user);
+        return Optional.of(new UserDTO(user));
     }
 
     public boolean deleteUser(int id) {
@@ -42,28 +43,28 @@ public class UserService {
         return false;
     }
 
-    public Optional<User> updateName(int id, String name) {
+    public Optional<UserDTO> updateName(int id, String name) {
         int lines = userRepository.updateUserNameById(id, name);
         logger.debug("lines updated: " + lines);
 
         return getUpdatedUser(id, lines);
     }
 
-    public Optional<User> updateEmail(int id, String email) {
+    public Optional<UserDTO> updateEmail(int id, String email) {
         int lines = userRepository.updateUserEmailById(id, email);
         logger.debug("lines updated: " + lines);
 
         return getUpdatedUser(id, lines);
     }
 
-    public Optional<User> updatePassword(int id, String password) {
+    public Optional<UserDTO> updatePassword(int id, String password) {
         int lines = userRepository.updateUserPasswordById(id,hashPassword(password));
         logger.debug("lines updated: " + lines);
 
         return getUpdatedUser(id, lines);
     }
 
-    public Optional<User> updateEnabled(int id, Boolean enabled) {
+    public Optional<UserDTO> updateEnabled(int id, Boolean enabled) {
         int lines = userRepository.updateUserEnabledById(id, enabled);
         logger.debug("lines updated: " + lines);
 
@@ -72,11 +73,12 @@ public class UserService {
 
 
     // -------------------- help methods --------------------------- //
-    private Optional<User> getUpdatedUser(int id, int lines) {
+    private Optional<UserDTO> getUpdatedUser(int id, int lines) {
         if (lines == 1) {
             Optional<User> user = userRepository.findById(id);
             logger.debug("User #" + id + " updated: " + user.get());
-            return user;
+            UserDTO userDTO = new UserDTO(user.get());
+            return Optional.of(userDTO);
         }
 
         return Optional.empty();
