@@ -52,12 +52,12 @@ public class Document extends File {
         this.updateLogs = new ArrayList<>();
     }
 
-    public void setContent(Content content) {
-        this.content = content;
+    public void setContent(String content) {
+        this.content.setContent(content);
     }
 
-    public Content getContent() {
-        return content;
+    public String getContent() {
+        return content.getContent();
     }
 
     private void addUpdateToLog(UpdateLog updateLog) {

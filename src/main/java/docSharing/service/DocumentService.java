@@ -4,6 +4,7 @@ import docSharing.controller.request.ShareRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.Permission;
 import docSharing.entities.User;
+import docSharing.entities.document.Content;
 import docSharing.entities.document.Document;
 import docSharing.entities.document.File;
 import docSharing.entities.document.Folder;
@@ -11,10 +12,10 @@ import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.FileSystems;
+import java.nio.file.*;
 import java.util.Optional;
 
+import static docSharing.utils.Utils.*;
 @Service
 public class DocumentService {
     private final DocumentRepository documentRepository;
@@ -126,4 +127,21 @@ public class DocumentService {
 
         return url;
     }
+
+    public Document importFile(String path, int ownerId, int parentID){
+        Document importDocument=createDocument(ownerId,parentID, getFileName(path));
+        importDocument.setContent(readFromFile(path));
+        return importDocument;
+    }
+
+    public void exportFile(int documentId){
+        Document document = documentRepository.getReferenceById(documentId);
+
+        String filename=document.getMetadata().getTitle();
+        String content=document.getContent();
+
+        String pathFile = "C:/Users/Downloads/"+filename+".txt";
+        writeToFile(content, pathFile);
+    }
+
 }
