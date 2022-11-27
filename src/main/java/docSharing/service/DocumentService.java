@@ -28,8 +28,8 @@ public class DocumentService {
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
 
-    static Map<Integer,String> documentCacheChanges = new HashMap<>();//doc id, doc content
-    static Map<Integer,String> documentCacheDBContent = new HashMap<>();
+    static Map<Integer,String> documentsContentCache = new HashMap<>();
+    static Map<Integer,String> documentsContentDBCache = new HashMap<>();
 
     private DocumentService(DocumentRepository documentRepository, FolderRepository folderRepository,
                             UserRepository userRepository, PermissionRepository permissionRepository) {
@@ -74,17 +74,17 @@ public class DocumentService {
     }
 
     private void updateContentOnCache(int documentId, String content){
-        documentCacheChanges.put(documentId,content);
+        documentsContentCache.put(documentId,content);
     }
 
     private void deleteFromCache(int documentID){
-        documentCacheChanges.remove(documentID);
-        documentCacheDBContent.remove(documentID);
+        documentsContentCache.remove(documentID);
+        documentsContentDBCache.remove(documentID);
     }
 
     private void updateContentOnDB(){
-        documentCacheChanges.forEach((key, value)->{
-            if (!documentCacheDBContent.containsKey(key) || !value.equals(documentCacheDBContent.get(key))) {
+        documentsContentCache.forEach((key, value)->{
+            if (!documentsContentDBCache.containsKey(key) || !value.equals(documentsContentDBCache.get(key))) {
                 updateContent(key, value);
             }
         });
@@ -94,7 +94,7 @@ public class DocumentService {
         Document updatedDocument = documentRepository.getReferenceById(documentId);
         updatedDocument.setContent(content);
         documentRepository.save(updatedDocument);
-        documentCacheDBContent.put(documentId, content);
+        documentsContentDBCache.put(documentId, content);
     }
 
     public Document setParent(int id, int parentId) {
@@ -192,10 +192,9 @@ public class DocumentService {
         }
     }
 
-    public Document importFile(String path, int ownerId, int parentID){
-        Document importDocument=createDocument(ownerId,parentID, getFileName(path));
-        importDocument.setContent(readFromFile(path));
-        return importDocument;
+    public void importFile(String path, int ownerId, int parentID){
+        Document document = createDocument(ownerId,parentID, getFileName(path));
+        updateContent(document.getId(), readFromFile(path));
     }
 
     public void exportFile(int documentId){
