@@ -68,4 +68,8 @@ public class DocumentEditController {
         documentService.exportFile(documentId);
     }
 
+    @MessageMapping("/hello")
+    public void greet(String name){
+        System.out.println("on connection name: "+name);
+    }
 }

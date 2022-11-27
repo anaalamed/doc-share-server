@@ -20,6 +20,10 @@ public abstract class File {
         this.metadata = new MetaData(this, parentId, title, ownerId);
     }
 
+    public int getId() {
+        return id;
+    }
+
     public MetaData getMetadata() {
         return metadata;
     }
