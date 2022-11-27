@@ -12,12 +12,10 @@ import docSharing.repository.DocumentRepository;
 import docSharing.repository.FolderRepository;
 import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
-
-import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.Optional;
 
+import static docSharing.utils.Utils.*;
 @Service
 public class DocumentService {
     private final DocumentRepository documentRepository;
@@ -134,25 +132,10 @@ public class DocumentService {
         Document importDocument= new Document(ownerId,parentID, getFileName(path));
 
         Content content= new Content();
-        content.setContent(getContentFromImportFile(path));
+        content.setContent(readFromFile(path));
 
         importDocument.setContent(content);
         return importDocument;
-    }
-
-    private String getFileName(String filePath){
-        Path path = Paths.get(filePath);
-        return path.getFileName().toString();
-    }
-
-    private String getContentFromImportFile(String path){
-        String str = "";
-        try {
-            str = new String(Files.readAllBytes(Paths.get(path)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return str;
     }
 
     public void exportFile(int documentId){
@@ -163,17 +146,6 @@ public class DocumentService {
 
         String pathFile = "C:/Users/Downloads/"+filename+".txt";
         writeToFile(content, pathFile);
-    }
-
-    private void writeToFile(String content, String path){
-        FileWriter fw;
-        try {
-            fw = new FileWriter(path);
-            fw.write(content);
-            fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }
