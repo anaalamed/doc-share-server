@@ -57,18 +57,6 @@ public class DocumentEditController {
         return updateRequest;
     }
 
-    @MessageMapping("/import")
-    @SendTo("/topic/import")
-    public void importFile(String filePath, int ownerId, int parentId) {
-        documentService.importFile(filePath, ownerId, parentId);
-    }
-
-    @MessageMapping("/export")
-    @SendTo("/topic/export")
-    public void exportFile(int documentId) {
-        documentService.exportFile(documentId);
-    }
-
     @MessageMapping("/hello")
     public void greet(String name){
         System.out.println("on connection name: "+name);
