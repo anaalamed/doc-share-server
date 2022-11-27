@@ -1,5 +1,7 @@
 package docSharing.entities.document;
 
+import docSharing.entities.User;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 
@@ -9,7 +11,7 @@ public class MetaData {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    @Column(name = "parent_id")
+    @Column(name = "parentId")
     private int parentId;
     @Column(name = "created")
     private final LocalDate created;
@@ -17,8 +19,9 @@ public class MetaData {
     private LocalDate lastUpdated;
     @Column(name = "title")
     private String title;
-    @Column(name = "owner_id")
-    private int owner_id;
+    @ManyToOne
+    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+    private User owner;
     @OneToOne(mappedBy = "metadata")
     private File file;
 
@@ -27,16 +30,12 @@ public class MetaData {
         this.lastUpdated =  LocalDate.now();
     }
 
-    public MetaData(File file, int parentId, String title, int createdBy) {
+    public MetaData(File file, String title, User owner, int parentId) {
         this();
         this.file = file;
-        this.parentId = parentId;
         this.title = title;
-        this.owner_id = createdBy;
-    }
-
-    public int getParentId() {
-        return parentId;
+        this.owner = owner;
+        this.parentId = parentId;
     }
 
     public LocalDate getCreated() {
@@ -51,19 +50,23 @@ public class MetaData {
         return title;
     }
 
-    public int getOwner_id() {
-        return owner_id;
+    public User getOwner() {
+        return owner;
     }
 
     public void setLastUpdated(LocalDate lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 
-    protected void setParentId(int parentId) {
-        this.parentId = parentId;
-    }
-
     protected void setTitle(String title) {
         this.title = title;
+    }
+
+    public int getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
     }
 }

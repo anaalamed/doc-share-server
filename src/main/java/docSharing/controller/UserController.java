@@ -3,6 +3,7 @@ package docSharing.controller;
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.User;
 import docSharing.service.AuthService;
+import docSharing.service.PermissionService;
 import docSharing.service.UserService;
 import docSharing.utils.InputValidation;
 import org.apache.logging.log4j.LogManager;
@@ -22,6 +23,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private PermissionService permissionService;
 
     private static final Logger logger = LogManager.getLogger(UserController.class.getName());
 

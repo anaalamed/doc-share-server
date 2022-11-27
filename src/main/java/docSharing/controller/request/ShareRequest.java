@@ -1,5 +1,5 @@
 package docSharing.controller.request;
-import docSharing.entities.Permission;
+import docSharing.entities.permission.Permission;
 import docSharing.entities.User;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ public class ShareRequest {
     private List<String> emails;
     private Permission permission;
     private boolean notify;
-    private List<User> users = new ArrayList<>();
+
 
     public ShareRequest() {
     }
@@ -43,13 +43,5 @@ public class ShareRequest {
 
     public boolean isNotify() {
         return notify;
-    }
-
-    public void addUser(User user) {
-        this.users.add(user);
-    }
-
-    public List<User> getUsers() {
-        return users;
     }
 }

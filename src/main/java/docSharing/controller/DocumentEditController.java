@@ -1,7 +1,6 @@
 package docSharing.controller;
 
 import docSharing.controller.request.UpdateRequest;
-import docSharing.entities.document.Document;
 import docSharing.service.DocumentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,29 +21,20 @@ public class DocumentEditController {
     public DocumentEditController() {
     }
 
-    @MessageMapping("/join")
-    public boolean join(int id, int userId) {
+    // TODO: why join and leave are not REST calls? maybe update should be the only socket call?
+    // and: check permissions
+    @MessageMapping("/join/{documentId}")
+    public void join(int documentId, int userId) {
         logger.info("in join()");
 
-        if (documentService.join(id, userId)) {
-            logger.info("user" + userId + "join");
-            return true;
-        } else {
-            logger.error("user" + userId + "failed to join");
-            return false;
-        }
+        documentService.join(documentId, userId);
     }
 
     @MessageMapping("/leave") //TODO: add path 'leave' in client
-    public boolean leave(int id, int userId) {
+    public void leave(int documentId, int userId) {
         logger.info("in leave()");
-        if (documentService.leave(id, userId)) {
-            logger.info("user" + userId + "leave");
-            return true;
-        } else {
-            logger.error("user" + userId + "failed to leave");
-            return false;
-        }
+
+        documentService.leave(documentId, userId);
     }
 
     @MessageMapping("/update")
@@ -56,13 +46,13 @@ public class DocumentEditController {
         return updateRequest;
     }
 
-    @MessageMapping("/import")//TODO: implement path on client
+    @MessageMapping("/import")
     @SendTo("/topic/import")
-    public Document importFile(String filePath, int ownerId, int parentID) {
-        return documentService.importFile(filePath,ownerId,parentID);
+    public void importFile(String filePath, int ownerId, int parentId) {
+        documentService.importFile(filePath, ownerId, parentId);
     }
 
-    @MessageMapping("/export")//TODO: implement path on client
+    @MessageMapping("/export")
     @SendTo("/topic/export")
     public void exportFile(int documentId) {
         documentService.exportFile(documentId);

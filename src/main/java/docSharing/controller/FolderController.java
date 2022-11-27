@@ -23,7 +23,7 @@ public class FolderController {
 
     @RequestMapping(method = RequestMethod.POST, path="/create")
     public ResponseEntity<BaseResponse<Folder>> create(@RequestParam int ownerId,
-                                                         @RequestParam int parentId, @RequestParam String title) {
+                                                       @RequestParam int parentId, @RequestParam String title) {
         logger.info("in create()");
 
         if (title.equals("")) {
@@ -32,17 +32,45 @@ public class FolderController {
 
         logger.info("folder: " + title + " was successfully created");
 
-        return ResponseEntity.ok(BaseResponse.success(folderService.createFolder(ownerId, parentId, title)));
+        try {
+            return ResponseEntity.ok(BaseResponse.success(folderService.createFolder(ownerId, parentId, title)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
+    public ResponseEntity<BaseResponse<Folder>> setParent(@RequestHeader int folderId, @RequestHeader int userId,
+                                                          @RequestParam int parentId) {
+        logger.info("in setParent()");
+
+        try {
+            return ResponseEntity.ok(BaseResponse.success(folderService.setParent(folderId, parentId)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
+    public ResponseEntity<BaseResponse<Folder>> setTitle(@RequestHeader int folderId, @RequestHeader int userId,
+                                                         @RequestParam String title) {
+        logger.info("in setTitle()");
+
+        try {
+            return ResponseEntity.ok(BaseResponse.success(folderService.setTitle(folderId, title)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
     }
 
     @RequestMapping(method = RequestMethod.DELETE, path="/delete")
-    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int id) {
+    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int folderId) {
         logger.info("in delete()");
 
-        if (folderService.delete(id)) {
+        if (folderService.delete(folderId)) {
             return ResponseEntity.ok(BaseResponse.noContent(true, "Folder was successfully deleted"));
         } else {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("The deletion failed"));
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Folder deletion failed"));
         }
     }
 }

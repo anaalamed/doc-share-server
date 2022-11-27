@@ -1,6 +1,5 @@
 package docSharing.service;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import docSharing.entities.User;
 import docSharing.repository.UserRepository;
 import org.apache.logging.log4j.LogManager;
@@ -75,12 +74,11 @@ public class UserService {
     // -------------------- help methods --------------------------- //
     private Optional<User> getUpdatedUser(int id, int lines) {
         if (lines == 1) {
-            User user = userRepository.findById(id);
-            logger.debug("User #" + id + " updated: " + user);
-            return Optional.of(user);
+            Optional<User> user = userRepository.findById(id);
+            logger.debug("User #" + id + " updated: " + user.get());
+            return user;
         }
 
         return Optional.empty();
     }
-
 }
