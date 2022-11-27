@@ -72,7 +72,4 @@ public class DocumentEditController {
     public void greet(String name){
         System.out.println("on connection name: "+name);
     }
-
-
-
 }
