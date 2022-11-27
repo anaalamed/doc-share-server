@@ -1,7 +1,6 @@
 package docSharing.utils;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
-
 import java.time.Instant;
 import java.util.UUID;
 

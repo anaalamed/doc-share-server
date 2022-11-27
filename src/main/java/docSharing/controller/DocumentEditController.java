@@ -1,6 +1,7 @@
 package docSharing.controller;
 
 import docSharing.controller.request.UpdateRequest;
+import docSharing.entities.document.Document;
 import docSharing.service.DocumentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,5 +45,22 @@ public class DocumentEditController {
         logger.info("update message:" + updateRequest.getContent());
 //        documentService.update(id, updateRequest);
         return updateRequest;
+    }
+
+    @MessageMapping("/import")//TODO: implement path on client
+    @SendTo("/topic/import")
+    public Document importFile(String filePath, int ownerId, int parentID) {
+        return documentService.importFile(filePath,ownerId,parentID);
+    }
+
+    @MessageMapping("/export")//TODO: implement path on client
+    @SendTo("/topic/export")
+    public void exportFile(int documentId) {
+        documentService.exportFile(documentId);
+    }
+
+    @MessageMapping("/hello")
+    public void greet(String name){
+        System.out.println("on connection name: "+name);
     }
 }

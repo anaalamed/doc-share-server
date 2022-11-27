@@ -25,6 +25,10 @@ public abstract class File {
         return id;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public MetaData getMetadata() {
         return metadata;
     }
