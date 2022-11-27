@@ -58,14 +58,15 @@ public class DocumentService {
     private void updateContentOnDB(){
         documentCacheChanges.forEach((key, value)->{
             if (!documentCacheDBContent.containsKey(key) || !value.equals(documentCacheDBContent.get(key))) {
-                SaveToDB(key);
+                SaveToDB(key, value);
                 documentCacheDBContent.put(key, value);//DB cache update
             }
         });
     }
 
-    private void SaveToDB(int documentId){
-        documentRepository.save(documentRepository.getReferenceById(documentId));
+    private void SaveToDB(int documentId, String content){
+        Document updateDoc=documentRepository.getReferenceById(documentId).setContent(content);
+        documentRepository.save(updateDoc);
     }
 
     public Document createDocument(int ownerId, int parentId, String title) {
