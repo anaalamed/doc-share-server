@@ -10,13 +10,14 @@ import java.util.List;
 @Table(name = "folder")
 public class Folder extends File {
     @ElementCollection
+    @Column(name = "sub_files")
     private List<File> subFiles;
 
     public Folder() {
     }
 
-    public Folder(User owner, Folder parent, String title) {
-        super(owner, parent, title);
+    public Folder(User owner, int parentId, String title) {
+        super(owner, parentId, title);
         this.subFiles = new ArrayList<>();
     }
 

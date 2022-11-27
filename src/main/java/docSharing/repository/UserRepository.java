@@ -7,14 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-
         User findByEmail(String email);
-
-        User findById(int id);
 
         @Transactional
         @Modifying
@@ -40,6 +36,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
         @Modifying
         @Query("update User u set u.enabled = ?2 where u.id = ?1")
         int updateUserEnabledById(int id, Boolean enabled);
-
-
 }

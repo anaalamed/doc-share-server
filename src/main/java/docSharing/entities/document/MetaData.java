@@ -11,17 +11,15 @@ public class MetaData {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "folder_id", referencedColumnName = "id")
-    private Folder parent;
+    @Column(name = "parentId")
+    private int parentId;
     @Column(name = "created")
     private final LocalDate created;
     @Column(name = "last_updated")
     private LocalDate lastUpdated;
     @Column(name = "title")
     private String title;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "owner_id", referencedColumnName = "id")
     private User owner;
     @OneToOne(mappedBy = "metadata")
@@ -32,16 +30,12 @@ public class MetaData {
         this.lastUpdated =  LocalDate.now();
     }
 
-    public MetaData(File file, Folder parent, String title, User owner) {
+    public MetaData(File file, String title, User owner, int parentId) {
         this();
         this.file = file;
-        this.parent = parent;
         this.title = title;
         this.owner = owner;
-    }
-
-    public Folder getParent() {
-        return parent;
+        this.parentId = parentId;
     }
 
     public LocalDate getCreated() {
@@ -64,11 +58,15 @@ public class MetaData {
         this.lastUpdated = lastUpdated;
     }
 
-    public void setParent(Folder parent) {
-        this.parent = parent;
-    }
-
     protected void setTitle(String title) {
         this.title = title;
+    }
+
+    public int getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
     }
 }

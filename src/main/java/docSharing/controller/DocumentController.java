@@ -8,6 +8,7 @@ import docSharing.entities.permission.Permission;
 import docSharing.service.DocumentService;
 import docSharing.service.PermissionService;
 import docSharing.service.UserService;
+import docSharing.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,14 +44,20 @@ public class DocumentController {
         if(title.equals("")) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Title cannot be empty!"));
         }
-        logger.info("document: " + title + " created");
+        logger.info("creating document: " + title);
 
-        Document document = documentService.createDocument(ownerId, parentId, title);
-        if (document != null) {
-            permissionService.addPermission(document.getId(), ownerId, Permission.OWNER);
+        try {
+            Document document = documentService.createDocument(ownerId, parentId, title);
+
+            if (document != null) {
+                permissionService.addPermission(document.getId(), ownerId, Permission.OWNER);
+                return ResponseEntity.ok(BaseResponse.success(document));
+            } else {
+                return ResponseEntity.badRequest().body(BaseResponse.failure("Error occurred while trying to create a document"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
         }
-
-        return ResponseEntity.ok(BaseResponse.success(document));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, path="/share")
@@ -58,7 +65,7 @@ public class DocumentController {
         logger.info("in share()");
 
         if (!permissionService.isAuthorized(shareRequest.getDocumentID(), shareRequest.getOwnerID(), Permission.EDITOR)) {
-            return getNoEditPermissionResponse(shareRequest.getOwnerID());
+            return Utils.getNoEditPermissionResponse(shareRequest.getOwnerID());
         }
 
         boolean allSucceed = true;
@@ -69,7 +76,7 @@ public class DocumentController {
 
             if (shareRequest.isNotify()) {
                 allSucceed = allSucceed &&
-                        permissionService.notifyShareByEmail
+                        documentService.notifyShareByEmail
                                 (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
             }
         }
@@ -89,30 +96,28 @@ public class DocumentController {
     }
 
     @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
-    public ResponseEntity<BaseResponse<Void>> setParent(@RequestHeader int documentId, @RequestHeader int userId,
-                                                        @RequestParam int parentId) {
+    public ResponseEntity<BaseResponse<Document>> setParent(@RequestHeader int documentId, @RequestHeader int userId,
+                                                            @RequestParam int parentId) {
         logger.info("in setParent()");
 
         if (!permissionService.isAuthorized(documentId, userId, Permission.EDITOR)) {
-            return getNoEditPermissionResponse(userId);
+            return Utils.getNoEditPermissionResponse(userId);
         }
 
         try {
-            documentService.setParent(documentId, parentId);
+            return ResponseEntity.ok(BaseResponse.success(documentService.setParent(documentId, parentId)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
         }
-
-        return ResponseEntity.ok(BaseResponse.noContent(true, "Parent ID is now: " + parentId));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
     public ResponseEntity<BaseResponse<Document>> setTitle(@RequestHeader int documentId, @RequestHeader int userId,
-                                                        @RequestParam String title) {
+                                                           @RequestParam String title) {
         logger.info("in setTitle()");
 
         if (!permissionService.isAuthorized(documentId, userId, Permission.EDITOR)) {
-            return getNoEditPermissionResponse(userId);
+            return Utils.getNoEditPermissionResponse(userId);
         }
 
         try {
@@ -128,7 +133,7 @@ public class DocumentController {
         logger.info("in delete()");
 
         if (!permissionService.isAuthorized(documentId, userId, Permission.EDITOR)) {
-            return getNoEditPermissionResponse(userId);
+            return Utils.getNoEditPermissionResponse(userId);
         }
 
         if (documentService.delete(documentId)) {
@@ -153,10 +158,5 @@ public class DocumentController {
         }
 
         return users;
-    }
-
-    private <T> ResponseEntity<BaseResponse<T>> getNoEditPermissionResponse(int userId) {
-        return ResponseEntity.badRequest().body(BaseResponse.failure(
-                String.format("User: %d does not have edit permission for this document!", userId)));
     }
 }

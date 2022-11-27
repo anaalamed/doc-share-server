@@ -7,7 +7,6 @@ import docSharing.entities.permission.Permission;
 import docSharing.repository.DocumentRepository;
 import docSharing.repository.PermissionRepository;
 import docSharing.repository.UserRepository;
-import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,21 +46,6 @@ public class PermissionService {
         } else {
             addPermission(documentId, userId, permission);
         }
-    }
-
-    public boolean notifyShareByEmail(int documentId, String email, Permission permission) {
-        Document document = documentRepository.getReferenceById(documentId);
-
-        try {
-            String subject = "Document shared with you: " + document.getMetadata().getTitle();
-            String message = String.format("The document owner has invited you to %s the following document: %s",
-                    permission.toString(), document.generateUrl());
-            GMailer.sendMail(email, subject, message);
-        } catch (Exception e) {
-            return false;
-        }
-
-        return true;
     }
 
     public boolean isAuthorized(int documentId, int userId, Permission permission) {

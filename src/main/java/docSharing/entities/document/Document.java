@@ -2,9 +2,9 @@ package docSharing.entities.document;
 
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
+import docSharing.entities.permission.Authorization;
 
 import javax.persistence.*;
-import java.nio.file.FileSystems;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +22,15 @@ public class Document extends File {
     @ElementCollection
     private final List<UpdateLog> updateLogs;
 
+
     public Document() {
         super();
         this.activeUsers = new ArrayList<>();
         this.updateLogs = new ArrayList<>();
     }
 
-    public Document(User owner, Folder parent, String title) {
-        super(owner, parent, title);
+    public Document(User owner, int parentId, String title) {
+        super(owner, parentId, title);
         this.content = new Content();
         this.activeUsers = new ArrayList<>();
         this.updateLogs = new ArrayList<>();
@@ -59,18 +60,6 @@ public class Document extends File {
         }
     }
 
-    public String generateUrl() {
-        Folder parent = this.getMetadata().getParent();
-        String url = this.getMetadata().getTitle();
-
-        while (parent != null) {
-            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
-            parent = parent.getMetadata().getParent();
-        }
-
-        return url;
-    }
-
     public boolean isActiveUser(int userId) {
         return this.activeUsers.contains(userId);
     }
@@ -95,5 +84,12 @@ public class Document extends File {
         }
 
         addUpdateToLog(new UpdateLog(updateRequest, LocalDate.now()));
+    }
+
+    @Override
+    public String toString() {
+        return "Document{" +
+                "content=" + content +
+                '}';
     }
 }

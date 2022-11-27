@@ -53,4 +53,11 @@ public class Content {
 
         return this.content;
     }
+
+    @Override
+    public String toString() {
+        return "Content{" +
+                "content='" + content + '\'' +
+                '}';
+    }
 }

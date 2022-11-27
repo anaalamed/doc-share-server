@@ -17,12 +17,8 @@ public abstract class File {
     protected File() {
     }
 
-    public File(User owner, Folder parent, String title) {
-        this.metadata = new MetaData(this, parent, title, owner);
-    }
-
-    public int getId() {
-        return id;
+    public File(User owner, int parentId, String title) {
+        this.metadata = new MetaData(this, title, owner, parentId);
     }
 
     public int getId() {
