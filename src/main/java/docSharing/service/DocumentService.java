@@ -95,7 +95,7 @@ public class DocumentService {
         Document updatedDocument = documentRepository.getReferenceById(documentId);
         updatedDocument.setContent(content);
         documentRepository.save(updatedDocument);
-        documentsContentDBCache.put(documentId, content);
+        updateContentOnCache(documentId, content);
     }
 
     public Document setParent(int id, int parentId) {
