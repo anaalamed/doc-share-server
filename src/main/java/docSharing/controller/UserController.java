@@ -1,7 +1,7 @@
 package docSharing.controller;
 
 import docSharing.controller.response.BaseResponse;
-import docSharing.entities.User;
+import docSharing.entities.DTO.UserDTO;
 import docSharing.service.AuthService;
 import docSharing.service.PermissionService;
 import docSharing.service.UserService;
@@ -30,10 +30,10 @@ public class UserController {
 
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<BaseResponse<User>> getUserByEmail(@RequestParam String email){
+    public ResponseEntity<BaseResponse<UserDTO>> getUserByEmail(@RequestParam String email){
         logger.info("in getUserByEmail");
 
-        Optional<User> user = userService.getByEmail(email);
+        Optional<UserDTO> user = userService.getByEmail(email);
         return user.map(value -> ResponseEntity.ok(BaseResponse.success(value)))
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found!")));
     }
@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "name")
-    public ResponseEntity<BaseResponse<User>> updateName(@PathVariable("email") String email, @RequestHeader String token,
+    public ResponseEntity<BaseResponse<UserDTO>> updateName(@PathVariable("email") String email, @RequestHeader String token,
                                                          @RequestParam String name) {
         logger.debug("in updateName");
 
@@ -69,13 +69,13 @@ public class UserController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
         }
 
-        Optional<User> updatedUser = userService.updateName(id, name);
+        Optional<UserDTO> updatedUser = userService.updateName(id, name);
         return updatedUser.map(value -> ResponseEntity.ok(BaseResponse.success(value))).
                 orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "newEmail")
-    public ResponseEntity<BaseResponse<User>> updateEmail(@PathVariable("email") String email, @RequestHeader String token,
+    public ResponseEntity<BaseResponse<UserDTO>> updateEmail(@PathVariable("email") String email, @RequestHeader String token,
                                                           @RequestParam String newEmail){
         logger.debug("in updateEmail");
 
@@ -88,14 +88,14 @@ public class UserController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
         }
 
-        Optional<User> updatedUser = userService.updateEmail(id, newEmail);
+        Optional<UserDTO> updatedUser = userService.updateEmail(id, newEmail);
         authService.updateTokensMap(email, token, newEmail);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "password")
-    public ResponseEntity<BaseResponse<User>> updatePassword(@PathVariable("email") String email, @RequestHeader String token,
+    public ResponseEntity<BaseResponse<UserDTO>> updatePassword(@PathVariable("email") String email, @RequestHeader String token,
                                                           @RequestParam String password){
         logger.debug("in updatePassword");
 
@@ -108,10 +108,8 @@ public class UserController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
         }
 
-        Optional<User> updatedUser = userService.updatePassword(id, password);
+        Optional<UserDTO> updatedUser = userService.updatePassword(id, password);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
-
-
 }

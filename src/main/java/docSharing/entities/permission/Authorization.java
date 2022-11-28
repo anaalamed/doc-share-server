@@ -1,7 +1,7 @@
 package docSharing.entities.permission;
 
 import docSharing.entities.User;
-import docSharing.entities.document.Document;
+import docSharing.entities.file.Document;
 
 import javax.persistence.*;
 

@@ -1,7 +1,6 @@
-package docSharing.entities.document;
+package docSharing.entities.file;
 
 import docSharing.controller.request.UpdateRequest;
-import docSharing.entities.User;
 
 import javax.persistence.*;
 import java.time.LocalDate;

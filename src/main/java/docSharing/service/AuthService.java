@@ -1,6 +1,7 @@
 package docSharing.service;
 
 import docSharing.controller.request.UserRequest;
+import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
 import docSharing.repository.UserRepository;
@@ -42,19 +43,22 @@ public class AuthService {
     }
 
 
-    public User createUser(UserRequest userRequest) throws SQLDataException {
-        logger.info("in createUser");
+    public UserDTO createUser(UserRequest userRequest) throws SQLDataException {
+        logger.info("in createUser()");
 
-        if(userRepository.findByEmail(userRequest.getEmail())!=null){
+        if(userRepository.findByEmail(userRequest.getEmail()) != null){
             throw new SQLDataException(String.format("Email %s exists in users table", userRequest.getEmail()));
         }
 
         logger.debug(userRequest);
-        return userRepository.save(new User(userRequest.getName(), userRequest.getEmail(), hashPassword(userRequest.getPassword())));
+        User user = userRepository.save(new User(userRequest.getName(), userRequest.getEmail(),
+                hashPassword(userRequest.getPassword())));
+
+        return new UserDTO(user);
     }
 
     public Optional<String> login(UserRequest userRequest) {
-        logger.info("in login");
+        logger.info("in login()");
 
         User userByEmail = userRepository.findByEmail(userRequest.getEmail());
 
@@ -72,7 +76,7 @@ public class AuthService {
     }
 
     public boolean isEnabledUser(UserRequest userRequest) {
-        logger.info("in isEnabledUser");
+        logger.info("in isEnabledUser()");
 
         User userByEmail = userRepository.findByEmail(userRequest.getEmail());
 
@@ -87,8 +91,9 @@ public class AuthService {
 
     // ------------------ verification token ------------------ //
 
-    public void publishRegistrationEvent(User createdUser, Locale locale, String appUrl  ) {
-        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(createdUser, locale, appUrl));
+    public void publishRegistrationEvent(UserDTO createdUser, Locale locale, String appUrl) {
+        User user = userRepository.getReferenceById(createdUser.getId());
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(user, locale, appUrl));
     }
 
     public void createVerificationToken(User user, String token) {
