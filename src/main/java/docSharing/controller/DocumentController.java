@@ -13,6 +13,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -158,5 +160,15 @@ public class DocumentController {
         }
 
         return users;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path="/import")
+    public void importFile(@RequestParam String filePath, @RequestParam int ownerId, @RequestParam int parentId) {
+        documentService.importFile(filePath, ownerId, parentId);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path="/export")
+    public void exportFile(@RequestParam int documentId) {
+        documentService.exportFile(documentId);
     }
 }
