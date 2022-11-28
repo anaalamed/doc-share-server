@@ -1,5 +1,6 @@
 package docSharing.controller;
 
+import docSharing.controller.request.ImportRequest;
 import docSharing.controller.request.ShareRequest;
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.User;
@@ -163,8 +164,8 @@ public class DocumentController {
     }
 
     @RequestMapping(method = RequestMethod.POST, path="/import")
-    public void importFile(@RequestParam String filePath, @RequestParam int ownerId, @RequestParam int parentId) {
-        documentService.importFile(filePath, ownerId, parentId);
+    public void importFile(@RequestBody ImportRequest importRequest) {
+        documentService.importFile(importRequest.getPath(), importRequest.getOwnerId(), importRequest.getParentId());
     }
 
     @RequestMapping(method = RequestMethod.GET, path="/export")
