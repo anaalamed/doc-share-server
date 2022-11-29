@@ -4,7 +4,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Scanner;
 
 public class FilesUtils {
     public static String getFileName(String filePath){
@@ -22,7 +21,7 @@ public class FilesUtils {
         return data;
     }
 
-    public static  void writeToFile(String content, String path){
+    public static void writeToFile(String content, String path){
         FileWriter fw;
         try {
             fw = new FileWriter(path);

@@ -38,6 +38,14 @@ public class DocumentController {
     public DocumentController() {
     }
 
+    /**
+     * Creates a Document and saves it to the database.
+     * @param token
+     * @param ownerId
+     * @param parentId
+     * @param title
+     * @return The document
+     */
     @RequestMapping(method = RequestMethod.POST, path="/create")
     public ResponseEntity<BaseResponse<Document>> create(@RequestHeader String token, @RequestHeader int ownerId,
                                                          @RequestParam int parentId, @RequestParam String title) {
@@ -61,6 +69,13 @@ public class DocumentController {
         }
     }
 
+    /**
+     * Updates permissions for users specified in shareRequest body.
+     * Sends notification email if shareRequest.notify is true.
+     * @param token
+     * @param shareRequest
+     * @return Void
+     */
     @RequestMapping(method = RequestMethod.PATCH, path="/share")
     public ResponseEntity<BaseResponse<Void>> share(@RequestHeader String token, @RequestBody ShareRequest shareRequest) {
         logger.info("in share()");
@@ -73,23 +88,20 @@ public class DocumentController {
             return Utils.getNoEditPermissionResponse(shareRequest.getOwnerID());
         }
 
-        boolean allSucceed = true;
-        for (UserDTO user : retrieveShareRequestUsers(shareRequest)) {
-            permissionService.updatePermission(shareRequest.getDocumentID(), user.getId(), shareRequest.getPermission());
-
-            if (shareRequest.isNotify()) {
-                allSucceed = allSucceed && documentService.notifyShareByEmail
-                        (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
-            }
-        }
-
-        if (allSucceed) {
+        try {
+            shareToUsersList(retrieveShareRequestUsers(shareRequest), shareRequest);
             return ResponseEntity.ok(BaseResponse.noContent(true, "Share by email succeed for all users"));
-        } else {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Share by email failed for some users"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure
+                    ("Share by email failed for some users. Nested error: " + e.getMessage()));
         }
     }
 
+    /**
+     * Returns document's URL address.
+     * @param documentId
+     * @return URL address
+     */
     @RequestMapping(method = RequestMethod.GET, path="/getUrl")
     public ResponseEntity<BaseResponse<String>> getUrl(@RequestHeader int documentId) {
         logger.info("in getUrl()");
@@ -97,6 +109,15 @@ public class DocumentController {
         return ResponseEntity.ok(BaseResponse.success(documentService.getUrl(documentId)));
     }
 
+    /**
+     * Updates document's parent folder.
+     * User must be logged in and must have edit permissions.
+     * @param documentId
+     * @param userId
+     * @param token
+     * @param parentId
+     * @return The updated document
+     */
     @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
     public ResponseEntity<BaseResponse<Document>> setParent(@RequestHeader int documentId, @RequestHeader int userId,
                                                             @RequestHeader String token, @RequestParam int parentId) {
@@ -116,7 +137,16 @@ public class DocumentController {
             return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
         }
     }
-
+    /**
+     * Updates document's title.
+     * The title must be unique in the containing folder and must not be empty.
+     * User must be logged in and must have edit permissions.
+     * @param documentId
+     * @param userId
+     * @param token
+     * @param title
+     * @return The updated document
+     */
     @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
     public ResponseEntity<BaseResponse<Document>> setTitle(@RequestHeader int documentId, @RequestHeader int userId,
                                                            @RequestHeader String token, @RequestParam String title) {
@@ -137,6 +167,14 @@ public class DocumentController {
         }
     }
 
+    /**
+     * Deletes document from the database.
+     * User must be logged in and must have edit permissions.
+     * @param documentId
+     * @param token
+     * @param userId
+     * @return
+     */
     @RequestMapping(method = RequestMethod.DELETE, path="/delete")
     public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int documentId, @RequestHeader String token,
                                                      @RequestHeader int userId) {
@@ -159,6 +197,15 @@ public class DocumentController {
         }
     }
 
+    /**
+     * Imports a document from specified filepath.
+     * Will create a new document with the imported title and content.
+     * @param token
+     * @param ownerId
+     * @param filePath
+     * @param parentId
+     * @return The imported document
+     */
     @RequestMapping(method = RequestMethod.POST, path="/import")
     public ResponseEntity<BaseResponse<Document>> importFile(@RequestHeader String token, @RequestHeader int ownerId,
                                                              @RequestParam String filePath, @RequestParam int parentId) {
@@ -174,6 +221,13 @@ public class DocumentController {
         }
     }
 
+    /**
+     * Exports a document to a text file.
+     * @param documentId
+     * @param token
+     * @param userId
+     * @return Void
+     */
     @RequestMapping(method = RequestMethod.GET, path="/export")
     public ResponseEntity<BaseResponse<Void>> exportFile(@RequestHeader int documentId, @RequestHeader String token,
                                                          @RequestHeader int userId) {
@@ -186,6 +240,10 @@ public class DocumentController {
         return ResponseEntity.ok(BaseResponse.noContent(true, "Document was exported successfully."));
     }
 
+    /**
+     * @param shareRequest
+     * @return List of Users corresponding to the shareRequest's emails list
+     */
     private List<UserDTO> retrieveShareRequestUsers(ShareRequest shareRequest) {
         List<UserDTO> users = new ArrayList<>();
 
@@ -200,5 +258,23 @@ public class DocumentController {
         }
 
         return users;
+    }
+
+    /**
+     * Updates permissions to a list of Users.
+     * Sends notification email if shareRequest.notify is true.
+     * @param users
+     * @param shareRequest
+     */
+    private void shareToUsersList(List<UserDTO> users, ShareRequest shareRequest) {
+        for (UserDTO user : users) {
+            permissionService.updatePermission
+                    (shareRequest.getDocumentID(), user.getId(), shareRequest.getPermission());
+
+            if (shareRequest.isNotify()) {
+                documentService.notifyShareByEmail
+                        (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
+            }
+        }
     }
 }

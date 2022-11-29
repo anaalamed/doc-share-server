@@ -39,16 +39,33 @@ public class DocumentService {
         this.permissionRepository = permissionRepository;
     }
 
+    /**
+     * Adds userId to the document's activeUsers list.
+     * @param id
+     * @param userId
+     */
     public void join(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
         document.addActiveUser(userId);
     }
 
+    /**
+     * Removes userId from the document's activeUsers list.
+     * @param id
+     * @param userId
+     */
     public void leave(int id, int userId) {
         Document document = documentRepository.getReferenceById(id);
         document.removeActiveUser(userId);
     }
 
+    /**
+     * Creates a Document and saves it to the database.
+     * @param ownerId
+     * @param parentId
+     * @param title
+     * @return The new document
+     */
     public Document createDocument(int ownerId, int parentId, String title) {
         Optional<User> owner = userRepository.findById(ownerId);
         if (!owner.isPresent()) {
@@ -66,6 +83,11 @@ public class DocumentService {
         return savedDocument;
     }
 
+    /**
+     * Updates a document and adds a track log to its history.
+     * @param documentId
+     * @param updateRequest
+     */
     public void update(int documentId, UpdateRequest updateRequest) {
         Document document = documentRepository.getReferenceById(documentId);
         document.updateContent(updateRequest);
@@ -73,30 +95,12 @@ public class DocumentService {
         updateContentOnCache(documentId, document.getContent());
     }
 
-    private void updateContentOnCache(int documentId, String content){
-        documentsContentCache.put(documentId,content);
-    }
-
-    private void deleteFromCache(int documentID){
-        documentsContentCache.remove(documentID);
-        documentsContentDBCache.remove(documentID);
-    }
-
-    private void updateContentOnDB(){
-        documentsContentCache.forEach((key, value)->{
-            if (!documentsContentDBCache.containsKey(key) || !value.equals(documentsContentDBCache.get(key))) {
-                updateContent(key, value);
-            }
-        });
-    }
-
-    private void updateContent(int documentId, String content){
-        Document updatedDocument = documentRepository.getReferenceById(documentId);
-        updatedDocument.setContent(content);
-        documentRepository.save(updatedDocument);
-        updateContentOnCache(documentId, content);
-    }
-
+    /**
+     * Updates document's parent folder.
+     * @param id
+     * @param parentId
+     * @return
+     */
     public Document setParent(int id, int parentId) {
         Document document = documentRepository.getReferenceById(id);
         Optional<Folder> parentToBe = folderRepository.findById(parentId);
@@ -111,6 +115,12 @@ public class DocumentService {
         return savedDocument;
     }
 
+    /**
+     * Updates document's title.
+     * @param id
+     * @param title
+     * @return
+     */
     public Document setTitle(int id, String title) {
         Document document = documentRepository.getReferenceById(id);
         Optional<Folder> parent = folderRepository.findById(document.getMetadata().getParentId());
@@ -121,6 +131,13 @@ public class DocumentService {
         return documentRepository.save(document);
     }
 
+    /**
+     * Sends a share notification email to the specified email address.
+     * @param documentId
+     * @param email
+     * @param permission
+     * @return Success status
+     */
     public boolean notifyShareByEmail(int documentId, String email, Permission permission) {
         Document document = documentRepository.getReferenceById(documentId);
 
@@ -154,6 +171,24 @@ public class DocumentService {
         }
 
         return url;
+    }
+
+    public Document importFile(String path, int ownerId, int parentID){
+        Document document = createDocument(ownerId,parentID, getFileName(path));
+        updateContent(document.getId(), readFromFile(path));
+
+        return document;
+    }
+
+    public void exportFile(int documentId){
+        Document document = documentRepository.getReferenceById(documentId);
+
+        String filename = document.getMetadata().getTitle();
+        String content = document.getContent();
+        String home = System.getProperty("user.home");
+        String filePath = home + "\\Downloads\\" + filename + ".txt";
+
+        writeToFile(content, filePath);
     }
 
     public boolean delete(int documentId) {
@@ -192,21 +227,27 @@ public class DocumentService {
         }
     }
 
-    public Document importFile(String path, int ownerId, int parentID){
-        Document document = createDocument(ownerId,parentID, getFileName(path));
-        updateContent(document.getId(), readFromFile(path));
-
-        return document;
+    private void updateContentOnCache(int documentId, String content){
+        documentsContentCache.put(documentId,content);
     }
 
-    public void exportFile(int documentId){
-        Document document = documentRepository.getReferenceById(documentId);
+    private void deleteFromCache(int documentID){
+        documentsContentCache.remove(documentID);
+        documentsContentDBCache.remove(documentID);
+    }
 
-        String filename = document.getMetadata().getTitle();
-        String content = document.getContent();
-        String home = System.getProperty("user.home");
-        String filePath = home + "\\Downloads\\" + filename + ".txt";
+    private void updateContentOnDB(){
+        documentsContentCache.forEach((key, value)->{
+            if (!documentsContentDBCache.containsKey(key) || !value.equals(documentsContentDBCache.get(key))) {
+                updateContent(key, value);
+            }
+        });
+    }
 
-        writeToFile(content, filePath);
+    private void updateContent(int documentId, String content){
+        Document updatedDocument = documentRepository.getReferenceById(documentId);
+        updatedDocument.setContent(content);
+        documentRepository.save(updatedDocument);
+        updateContentOnCache(documentId, content);
     }
 }
