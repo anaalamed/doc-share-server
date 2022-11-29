@@ -33,7 +33,6 @@ public class DocumentController {
     private AuthService authService;
     @Autowired
     private PermissionService permissionService;
-
     private static final Logger logger = LogManager.getLogger(DocumentController.class.getName());
 
     public DocumentController() {
