@@ -42,7 +42,11 @@ public class Utils {
         return true;
     }
 
-    public static void validateUniqueTitle(Optional<Folder> folder, String title) {
+    public static void validateTitle(Optional<Folder> folder, String title) {
+        if (title.equals("")) {
+            throw new IllegalArgumentException("Title cannot be empty!");
+        }
+
         if (!Utils.isUniqueTitleInFolder(folder, title)) {
             throw new IllegalArgumentException(String.format("File with title: %s already exists in that folder!", title));
         }

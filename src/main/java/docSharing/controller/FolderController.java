@@ -2,6 +2,7 @@ package docSharing.controller;
 
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.file.Folder;
+import docSharing.service.AuthService;
 import docSharing.service.FolderService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,22 +16,21 @@ import org.springframework.web.bind.annotation.*;
 public class FolderController {
     @Autowired
     private FolderService folderService;
-
+    @Autowired
+    private AuthService authService;
     private static final Logger logger = LogManager.getLogger(FolderController.class.getName());
 
     public FolderController() {
     }
 
     @RequestMapping(method = RequestMethod.POST, path="/create")
-    public ResponseEntity<BaseResponse<Folder>> create(@RequestParam int ownerId,
+    public ResponseEntity<BaseResponse<Folder>> create(@RequestHeader String token, @RequestHeader int ownerId,
                                                        @RequestParam int parentId, @RequestParam String title) {
         logger.info("in create()");
 
-        if (title.equals("")) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Title cannot be empty!"));
+        if (!authService.isAuthenticated(ownerId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
-
-        logger.info("folder: " + title + " was successfully created");
 
         try {
             return ResponseEntity.ok(BaseResponse.success(folderService.createFolder(ownerId, parentId, title)));
@@ -40,9 +40,13 @@ public class FolderController {
     }
 
     @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
-    public ResponseEntity<BaseResponse<Folder>> setParent(@RequestHeader int folderId, @RequestHeader int userId,
-                                                          @RequestParam int parentId) {
+    public ResponseEntity<BaseResponse<Folder>> setParent(@RequestHeader String token, @RequestHeader int folderId,
+                                                          @RequestHeader int userId, @RequestParam int parentId) {
         logger.info("in setParent()");
+
+        if (!authService.isAuthenticated(userId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
+        }
 
         try {
             return ResponseEntity.ok(BaseResponse.success(folderService.setParent(folderId, parentId)));
@@ -52,9 +56,13 @@ public class FolderController {
     }
 
     @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
-    public ResponseEntity<BaseResponse<Folder>> setTitle(@RequestHeader int folderId, @RequestHeader int userId,
-                                                         @RequestParam String title) {
+    public ResponseEntity<BaseResponse<Folder>> setTitle(@RequestHeader String token, @RequestHeader int folderId,
+                                                         @RequestHeader int userId, @RequestParam String title) {
         logger.info("in setTitle()");
+
+        if (!authService.isAuthenticated(userId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
+        }
 
         try {
             return ResponseEntity.ok(BaseResponse.success(folderService.setTitle(folderId, title)));
@@ -64,8 +72,13 @@ public class FolderController {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, path="/delete")
-    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int folderId) {
+    public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int folderId, @RequestHeader int userId,
+                                                     @RequestHeader String token) {
         logger.info("in delete()");
+
+        if (!authService.isAuthenticated(userId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
+        }
 
         if (folderService.delete(folderId)) {
             return ResponseEntity.ok(BaseResponse.noContent(true, "Folder was successfully deleted"));

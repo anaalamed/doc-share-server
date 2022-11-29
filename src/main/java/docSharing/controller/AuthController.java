@@ -26,31 +26,27 @@ import java.util.Optional;
 @CrossOrigin
 @RequestMapping("/auth")
 public class AuthController {
-
     @Autowired
     private AuthService authService;
-
     @Autowired
     private UserService userService;
-
     private static final Logger logger = LogManager.getLogger(AuthController.class.getName());
 
-
     @RequestMapping(method = RequestMethod.POST, path = "/signup")
-    public ResponseEntity<BaseResponse<UserDTO>> register(@RequestBody UserRequest userRequest, HttpServletRequest request){
+    public ResponseEntity<BaseResponse<UserDTO>> register(@RequestBody UserRequest userRequest, HttpServletRequest request) {
+        logger.info("in register()");
+
+        if (userRequest.getEmail() == null || !InputValidation.isValidEmail(userRequest.getEmail())) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email address!"));
+        }
+        if (userRequest.getName() == null || !InputValidation.isValidName(userRequest.getName())) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
+        }
+        if (userRequest.getPassword() == null || !InputValidation.isValidPassword(userRequest.getPassword())) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
+        }
+
         try {
-            logger.info("in register");
-
-            if (userRequest.getEmail() == null || !InputValidation.isValidEmail(userRequest.getEmail())) {
-                return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email address!"));
-            }
-            if (userRequest.getName() == null || !InputValidation.isValidName(userRequest.getName())) {
-                return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
-            }
-            if (userRequest.getPassword() == null || !InputValidation.isValidPassword(userRequest.getPassword())) {
-                return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
-            }
-
             UserDTO createdUser = authService.createUser(userRequest);
             authService.publishRegistrationEvent(createdUser, request.getLocale(), request.getContextPath());
             return ResponseEntity.ok(BaseResponse.success(createdUser));
@@ -60,8 +56,8 @@ public class AuthController {
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "/login")
-    public  ResponseEntity<BaseResponse<String>> login(@RequestBody UserRequest userRequest){
-        logger.info("in login");
+    public  ResponseEntity<BaseResponse<String>> login(@RequestBody UserRequest userRequest) {
+        logger.info("in login()");
 
         if (userRequest.getEmail() == null || !InputValidation.isValidEmail(userRequest.getEmail())) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
@@ -70,14 +66,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 
-        if (! authService.isEnabledUser(userRequest)) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("You should confirm your email first!"));
+        if (!authService.isEnabledUser(userRequest)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("You must confirm your email first!"));
         }
 
         Optional<String> token = authService.login(userRequest);
         if (!token.isPresent()) {
             logger.warn("User " + userRequest.getEmail() + " failed to log in");
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Wrong Email or Password. Login failed"));
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Wrong Email or Password - Login failed!"));
         }
 
         logger.info("User with email" + userRequest.getEmail() + "logged in");
@@ -105,5 +101,4 @@ public class AuthController {
         authService.deleteVerificationToken(token);
         return "redirect:/login.html?lang=" + request.getLocale().getLanguage();
     }
-
 }

@@ -33,7 +33,7 @@ public class AuthService {
 
     private static final int SCHEDULE = 1000 * 60 * 60;
 
-    static HashMap<User, String> mapUserTokens = new HashMap<>();
+    static HashMap<Integer, String> usersTokensMap = new HashMap<>();
 
     private static final Logger logger = LogManager.getLogger(AuthService.class.getName());
 
@@ -42,12 +42,11 @@ public class AuthService {
         this.tokenRepository = tokenRepository;
     }
 
-
     public UserDTO createUser(UserRequest userRequest) throws SQLDataException {
         logger.info("in createUser()");
 
-        if(userRepository.findByEmail(userRequest.getEmail()) != null){
-            throw new SQLDataException(String.format("Email %s exists in users table", userRequest.getEmail()));
+        if(userRepository.findByEmail(userRequest.getEmail()).isPresent()){
+            throw new SQLDataException(String.format("Email %s already exists!", userRequest.getEmail()));
         }
 
         logger.debug(userRequest);
@@ -60,33 +59,28 @@ public class AuthService {
     public Optional<String> login(UserRequest userRequest) {
         logger.info("in login()");
 
-        User userByEmail = userRepository.findByEmail(userRequest.getEmail());
+        Optional<User> user = userRepository.findByEmail(userRequest.getEmail());
+        Optional<String> token = Optional.empty();
 
-        if (userByEmail == null) {
-            return Optional.empty();
+        if (user.isPresent() && verifyPassword(userRequest.getPassword(), user.get().getPassword())) {
+            token = Optional.of(Utils.generateUniqueToken()) ;
+            usersTokensMap.put(user.get().getId(), token.get());
         }
 
-        if(verifyPassword(userByEmail.getPassword(), userRequest.getPassword())) {
-            Optional<String> token = Optional.of(Utils.generateUniqueToken()) ;
-            mapUserTokens.put(userByEmail, token.get());
-            return token;
-        }
-
-        return Optional.empty();
+        return token;
     }
 
     public boolean isEnabledUser(UserRequest userRequest) {
         logger.info("in isEnabledUser()");
 
-        User userByEmail = userRepository.findByEmail(userRequest.getEmail());
+        Optional<User> user = userRepository.findByEmail(userRequest.getEmail());
 
-        if (userByEmail == null) {
-            return false;
-        }
-
-        return userByEmail.isEnabled();
+        return user.isPresent() && user.get().isEnabled();
     }
 
+    public boolean isAuthenticated(int userId, String token) {
+        return usersTokensMap.containsKey(userId) && usersTokensMap.get(userId).equals(token);
+    }
 
 
     // ------------------ verification token ------------------ //
@@ -109,7 +103,6 @@ public class AuthService {
         tokenRepository.deleteByToken(token);
     }
 
-
     @Scheduled(fixedRate = SCHEDULE)
     public void scheduleDeleteNotActivatedUsers() {
         logger.info("---------- in scheduleDeleteNotActivatedUsers-------------");
@@ -123,29 +116,4 @@ public class AuthService {
             logger.debug("Verification token for user_id#" + token.getUser().getId() + " and non activated user was deleted");
         }
     }
-
-
-    // ----------------------- help methods ---------------------- //
-    public int getTokenByUser(String email, String token)  {
-        Optional<Map.Entry<User, String>> userTokenPair = mapUserTokens.entrySet().stream()
-                .filter(row -> row.getKey().getEmail().equals(email))
-                .findFirst();
-
-        if (! userTokenPair.isPresent() ||
-            ! userTokenPair.get().getKey().getEmail().equals(email) ||
-            ! userTokenPair.get().getValue().equals(token)) {
-            return 0;
-        }
-
-        return userTokenPair.get().getKey().getId();
-    }
-
-    public void updateTokensMap(String email, String token, String newEmail) {
-        for (User user: mapUserTokens.keySet()) {
-            if (user.getEmail().equals(email) && mapUserTokens.get(user).equals(token)) {
-                user.setEmail(newEmail);
-            }
-        }
-    }
-
 }

@@ -18,19 +18,17 @@ import java.util.Optional;
 @CrossOrigin
 @RequestMapping("/user")
 public class UserController {
-
     @Autowired
     private UserService userService;
     @Autowired
     private AuthService authService;
     @Autowired
     private PermissionService permissionService;
-
     private static final Logger logger = LogManager.getLogger(UserController.class.getName());
 
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<BaseResponse<UserDTO>> getUserByEmail(@RequestParam String email){
+    public ResponseEntity<BaseResponse<UserDTO>> getUserByEmail(@RequestParam String email) {
         logger.info("in getUserByEmail");
 
         Optional<UserDTO> user = userService.getByEmail(email);
@@ -39,23 +37,22 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "delete")
-    public ResponseEntity<BaseResponse<String>> deleteUser(@RequestParam String email, @RequestHeader String token){
+    public ResponseEntity<BaseResponse<String>> deleteUser(@RequestParam int userId, @RequestHeader String token){
         logger.debug("in deleteUser");
 
-        int id = authService.getTokenByUser(email, token);
-        if (id == 0) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
+        if (!authService.isAuthenticated(userId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        if (userService.deleteUser(id)) {
-            return ResponseEntity.ok(BaseResponse.noContent(true, "user " + email + " deleted"));
+        if (userService.deleteUser(userId)) {
+            return ResponseEntity.ok(BaseResponse.noContent(true, "User #" + userId + " was successfully deleted"));
         }
 
-        return ResponseEntity.badRequest().body(BaseResponse.failure("Delete user #" + id + "failed"));
+        return ResponseEntity.badRequest().body(BaseResponse.failure("Failed to delete user #" + userId));
     }
 
-    @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "name")
-    public ResponseEntity<BaseResponse<UserDTO>> updateName(@PathVariable("email") String email, @RequestHeader String token,
+    @RequestMapping(method = RequestMethod.PATCH, value="/update/{id}", params = "name")
+    public ResponseEntity<BaseResponse<UserDTO>> updateName(@PathVariable("id") int userId, @RequestHeader String token,
                                                          @RequestParam String name) {
         logger.debug("in updateName");
 
@@ -63,52 +60,47 @@ public class UserController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
         }
 
-        int id = authService.getTokenByUser(email, token);
-        logger.debug(id);
-        if (id == 0) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
+        if (!authService.isAuthenticated(userId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        Optional<UserDTO> updatedUser = userService.updateName(id, name);
+        Optional<UserDTO> updatedUser = userService.updateName(userId, name);
         return updatedUser.map(value -> ResponseEntity.ok(BaseResponse.success(value))).
                 orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
-    @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "newEmail")
-    public ResponseEntity<BaseResponse<UserDTO>> updateEmail(@PathVariable("email") String email, @RequestHeader String token,
-                                                          @RequestParam String newEmail){
+    @RequestMapping(method = RequestMethod.PATCH, value="/update/{id}", params = "newEmail")
+    public ResponseEntity<BaseResponse<UserDTO>> updateEmail(@PathVariable("id") int userId,
+                                                             @RequestHeader String token, @RequestParam String newEmail) {
         logger.debug("in updateEmail");
 
         if (!InputValidation.isValidEmail(newEmail)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
         }
 
-        int id = authService.getTokenByUser(email, token);
-        if (id == 0) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
+        if (!authService.isAuthenticated(userId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        Optional<UserDTO> updatedUser = userService.updateEmail(id, newEmail);
-        authService.updateTokensMap(email, token, newEmail);
+        Optional<UserDTO> updatedUser = userService.updateEmail(userId, newEmail);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
-    @RequestMapping(method = RequestMethod.PATCH, value="/update/{email}", params = "password")
-    public ResponseEntity<BaseResponse<UserDTO>> updatePassword(@PathVariable("email") String email, @RequestHeader String token,
-                                                          @RequestParam String password){
+    @RequestMapping(method = RequestMethod.PATCH, value="/update/{id}", params = "password")
+    public ResponseEntity<BaseResponse<UserDTO>> updatePassword(@PathVariable("id") int userId,
+                                                                @RequestHeader String token, @RequestParam String password) {
         logger.debug("in updatePassword");
 
         if (!InputValidation.isValidPassword(password)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 
-        int id = authService.getTokenByUser(email, token);
-        if (id == 0) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("User not authorized"));
+        if (!authService.isAuthenticated(userId, token)) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        Optional<UserDTO> updatedUser = userService.updatePassword(id, password);
+        Optional<UserDTO> updatedUser = userService.updatePassword(userId, password);
         return updatedUser.map(user -> ResponseEntity.ok(BaseResponse.success(user)))
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
