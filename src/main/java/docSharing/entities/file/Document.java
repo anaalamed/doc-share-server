@@ -44,8 +44,8 @@ public class Document extends File {
     }
 
     private void addUpdateToLog(UpdateLog updateLog) {
-        if (this.updateLogs.get(-1).isContinuousLog(updateLog)) {
-            this.updateLogs.get(-1).unite(updateLog);
+        if (this.updateLogs.get(this.updateLogs.size() - 1).isContinuousLog(updateLog)) {
+            this.updateLogs.get(this.updateLogs.size() - 1).unite(updateLog);
         } else {
             this.updateLogs.add(updateLog);
         }
