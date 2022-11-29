@@ -203,7 +203,8 @@ public class DocumentService {
 
         String filename=document.getMetadata().getTitle();
         String content=document.getContent();
-        String pathFile = "C:\\Users\\tbz19\\Downloads\\"+filename+".txt";
-        writeToFile(content, pathFile);
+        String home = System.getProperty("user.home");
+        String filePath = home+"\\Downloads\\" + filename + ".txt";
+        writeToFile(content, filePath);
     }
 }
