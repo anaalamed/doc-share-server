@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -94,7 +95,7 @@ public class DocumentService {
         Document updatedDocument = documentRepository.getReferenceById(documentId);
         updatedDocument.setContent(content);
         documentRepository.save(updatedDocument);
-        documentsContentDBCache.put(documentId, content);
+        updateContentOnCache(documentId, content);
     }
 
     public Document setParent(int id, int parentId) {
@@ -202,8 +203,8 @@ public class DocumentService {
 
         String filename=document.getMetadata().getTitle();
         String content=document.getContent();
-
-        String pathFile = "C:/Users/Downloads/"+filename+".txt";
-        writeToFile(content, pathFile);
+        String home = System.getProperty("user.home");
+        String filePath = home+"\\Downloads\\" + filename + ".txt";
+        writeToFile(content, filePath);
     }
 }

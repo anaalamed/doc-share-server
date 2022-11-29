@@ -4,7 +4,7 @@ import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +44,11 @@ public class Document extends File {
     }
 
     private void addUpdateToLog(UpdateLog updateLog) {
-        this.updateLogs.add(updateLog);
+        if (this.updateLogs.get(this.updateLogs.size() - 1).isContinuousLog(updateLog)) {
+            this.updateLogs.get(this.updateLogs.size() - 1).unite(updateLog);
+        } else {
+            this.updateLogs.add(updateLog);
+        }
     }
 
     public void addActiveUser(int userId) {
@@ -82,7 +86,7 @@ public class Document extends File {
                 throw new IllegalArgumentException("Unsupported update request type!");
         }
 
-        addUpdateToLog(new UpdateLog(updateRequest, LocalDate.now()));
+        addUpdateToLog(new UpdateLog(updateRequest, LocalDateTime.now()));
     }
 
     @Override
