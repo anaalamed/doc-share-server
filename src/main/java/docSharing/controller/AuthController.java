@@ -10,7 +10,6 @@ import docSharing.entities.VerificationToken;
 import docSharing.service.AuthService;
 import docSharing.service.UserService;
 import docSharing.utils.InputValidation;
-import javafx.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
