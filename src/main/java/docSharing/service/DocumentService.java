@@ -153,26 +153,23 @@ public class DocumentService {
         return true;
     }
 
+    /**
+     * @param documentId
+     * @return The document's URL
+     */
     public String getUrl(int documentId) {
         Document document = documentRepository.getReferenceById(documentId);
         return generateUrl(documentId);
     }
 
-    public String generateUrl(int documentId) {
-        Document document = documentRepository.getReferenceById(documentId);
-
-        String url = document.getMetadata().getTitle();
-        int parentId = document.getMetadata().getParentId();
-
-        while (parentId > 0) {
-            Folder parent = folderRepository.getReferenceById(parentId);
-            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
-            parentId = parent.getMetadata().getParentId();
-        }
-
-        return url;
-    }
-
+    /**
+     * Imports a document from specified filepath.
+     * Will create a new document with the imported title and content.
+     * @param path
+     * @param ownerId
+     * @param parentID
+     * @return The imported document
+     */
     public Document importFile(String path, int ownerId, int parentID){
         Document document = createDocument(ownerId,parentID, getFileName(path));
         updateContent(document.getId(), readFromFile(path));
@@ -180,6 +177,10 @@ public class DocumentService {
         return document;
     }
 
+    /**
+     * Exports a document to a text file.
+     * @param documentId
+     */
     public void exportFile(int documentId){
         Document document = documentRepository.getReferenceById(documentId);
 
@@ -191,6 +192,11 @@ public class DocumentService {
         writeToFile(content, filePath);
     }
 
+    /**
+     * Deletes document from the database.
+     * @param documentId
+     * @return
+     */
     public boolean delete(int documentId) {
         Optional<Document> document = documentRepository.findById(documentId);
         if (!document.isPresent()) {
@@ -249,5 +255,20 @@ public class DocumentService {
         updatedDocument.setContent(content);
         documentRepository.save(updatedDocument);
         updateContentOnCache(documentId, content);
+    }
+
+    private String generateUrl(int documentId) {
+        Document document = documentRepository.getReferenceById(documentId);
+
+        String url = document.getMetadata().getTitle();
+        int parentId = document.getMetadata().getParentId();
+
+        while (parentId > 0) {
+            Folder parent = folderRepository.getReferenceById(parentId);
+            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
+            parentId = parent.getMetadata().getParentId();
+        }
+
+        return url;
     }
 }
