@@ -74,15 +74,12 @@ public class DocumentController {
         }
 
         boolean allSucceed = true;
-
-        List<UserDTO> users = retrieveShareRequestUsers(shareRequest);
-        for (UserDTO user : users) {
+        for (UserDTO user : retrieveShareRequestUsers(shareRequest)) {
             permissionService.updatePermission(shareRequest.getDocumentID(), user.getId(), shareRequest.getPermission());
 
             if (shareRequest.isNotify()) {
-                allSucceed = allSucceed &&
-                        documentService.notifyShareByEmail
-                                (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
+                allSucceed = allSucceed && documentService.notifyShareByEmail
+                        (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
             }
         }
 

@@ -22,7 +22,6 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-
     public Optional<UserDTO> getByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (!user.isPresent()) {
@@ -30,6 +29,16 @@ public class UserService {
         }
 
         return Optional.of(new UserDTO(user.get()));
+    }
+
+    public Integer getUserIdByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+
+        if (!user.isPresent()) {
+            return null;
+        }
+
+        return user.get().getId();
     }
 
     public boolean deleteUser(int id) {
