@@ -4,9 +4,7 @@ import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +45,7 @@ public class Document extends File {
 
     private void addUpdateToLog(UpdateLog updateLog) {
         if (this.updateLogs.get(-1).isContinuousLog(updateLog)) {
-            this.updateLogs.get(-1).uniteLogs(updateLog);
+            this.updateLogs.get(-1).unite(updateLog);
         } else {
             this.updateLogs.add(updateLog);
         }

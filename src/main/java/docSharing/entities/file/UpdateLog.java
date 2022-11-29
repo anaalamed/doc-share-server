@@ -41,32 +41,31 @@ public class UpdateLog {
 
     public boolean isContinuousLog(UpdateLog updateLog) {
         return (isSameUser(updateLog) &&
-                isSameType(updateLog) &&
+                isMatchingType(updateLog) &&
                 isFromLastXSeconds(updateLog, 5) &&
                 isContinuousIndex(updateLog));
     }
 
-    public void uniteLogs(UpdateLog updateLog) {
-        String previousContent  = this.updateRequest.getContent();
-        int previousStart       = updateLog.getUpdateRequest().getStartPosition();
-        int previousEnd         = updateLog.getUpdateRequest().getEndPosition();
+    public void unite(UpdateLog updateLog) {
+        int previousStart       = this.getUpdateRequest().getStartPosition();
+        int previousEnd         = this.getUpdateRequest().getEndPosition();
         int currentStart        = updateLog.getUpdateRequest().getStartPosition();
         int currentEnd          = updateLog.getUpdateRequest().getEndPosition();
 
-        switch(updateLog.getUpdateRequest().getType()) {
+        switch(this.getUpdateRequest().getType()) {
             case APPEND:
             case APPEND_RANGE:
-                this.updateRequest.setContent(previousContent.substring(0, currentStart - previousStart)
-                        + updateLog.getUpdateRequest().getContent()
-                        + previousContent.substring(currentStart - previousStart));
+                appendContent(updateLog);
                 this.updateRequest.setStartPosition(min(previousStart, currentStart));
                 this.updateRequest.setEndPosition(max(previousEnd, currentEnd));
                 break;
 
             case DELETE:
-            case DELETE_RANGE:
-                this.updateRequest.setStartPosition(max(previousStart, currentStart));
                 this.updateRequest.setEndPosition(min(previousEnd, currentEnd));
+                break;
+
+            case DELETE_RANGE:
+                this.updateRequest.setStartPosition(min(previousStart, currentEnd));
                 break;
 
             default:
@@ -77,12 +76,35 @@ public class UpdateLog {
         this.setTimestamp(updateLog.getTimestamp());
     }
 
+    private void appendContent(UpdateLog updateLog) {
+        String previousContent  = this.updateRequest.getContent();
+        int previousStart       = this.getUpdateRequest().getStartPosition();
+        int currentStart        = updateLog.getUpdateRequest().getStartPosition();
+        int currentEnd          = updateLog.getUpdateRequest().getEndPosition();
+
+        this.updateRequest.setContent(previousContent.substring(0, currentStart - previousStart)
+                + updateLog.getUpdateRequest().getContent()
+                + previousContent.substring(min(previousContent.length(), currentEnd - previousStart)));
+    }
+
     private boolean isSameUser(UpdateLog updateLog) {
         return this.getUpdateRequest().getUserEmail() == updateLog.getUpdateRequest().getUserEmail();
     }
 
-    private boolean isSameType(UpdateLog updateLog) {
-        return this.getUpdateRequest().getType() == updateLog.getUpdateRequest().getType();
+    private boolean isMatchingType(UpdateLog updateLog) {
+        switch (this.getUpdateRequest().getType()) {
+            case APPEND:
+            case APPEND_RANGE:
+                return updateLog.getUpdateRequest().getType() == UpdateRequest.UpdateType.APPEND;
+
+            case DELETE:
+            case DELETE_RANGE:
+                return updateLog.getUpdateRequest().getType() == UpdateRequest.UpdateType.DELETE;
+
+            default:
+                throw new IllegalArgumentException(
+                        String.format("Update type: %s is not supported!", this.getUpdateRequest().getType()));
+        }
     }
 
     private boolean isFromLastXSeconds(UpdateLog updateLog, int seconds) {
@@ -94,7 +116,19 @@ public class UpdateLog {
         int previousEnd = this.getUpdateRequest().getEndPosition();
         int currentStart = updateLog.getUpdateRequest().getStartPosition();
 
-        return currentStart >= previousStart && currentStart <= previousEnd + 1;
+        switch (this.getUpdateRequest().getType()) {
+            case APPEND:
+            case DELETE:
+                return currentStart >= previousStart && currentStart <= previousEnd + 1;
+
+            case APPEND_RANGE:
+            case DELETE_RANGE:
+                return currentStart >= previousStart &&
+                        currentStart <= previousStart + this.getUpdateRequest().getContent().length();
+            default:
+                throw new IllegalArgumentException(
+                        String.format("Update type: %s is not supported!", updateLog.getUpdateRequest().getType()));
+        }
     }
 
     @Override
