@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UpdateLogTests {
     private UpdateLog updateLog;
@@ -28,8 +27,8 @@ public class UpdateLogTests {
         this.updateLog.getUpdateRequest().setUserEmail(userEmail1);
         arbitraryLog.getUpdateRequest().setUserEmail(userEmail2);
 
-        assertEquals(false, this.updateLog.isContinuousLog(arbitraryLog),
-                String.format("isContinuousLog() should return false for different users"));
+        assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
+                "isContinuousLog() should return false for different users");
     }
 
     @Test
@@ -42,8 +41,8 @@ public class UpdateLogTests {
         this.updateLog.getUpdateRequest().setType(type1);
         arbitraryLog.getUpdateRequest().setType(type2);
 
-        assertEquals(false, this.updateLog.isContinuousLog(arbitraryLog),
-                String.format("isContinuousLog() should return false for different types"));
+        assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
+                "isContinuousLog() should return false for different types");
     }
 
     @Test
@@ -56,8 +55,8 @@ public class UpdateLogTests {
         this.updateLog.setTimestamp(timestamp1);
         arbitraryLog.setTimestamp(timestamp2);
 
-        assertEquals(false, this.updateLog.isContinuousLog(arbitraryLog),
-                String.format("isContinuousLog() should return false for distant timestamps"));
+        assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
+                "isContinuousLog() should return false for distant timestamps");
     }
 
     @Test
@@ -69,8 +68,8 @@ public class UpdateLogTests {
         arbitraryLog.getUpdateRequest().setStartPosition(24);
         arbitraryLog.getUpdateRequest().setEndPosition(25);
 
-        assertEquals(false, this.updateLog.isContinuousLog(arbitraryLog),
-                String.format("isContinuousLog() should return false when indexes are not continuous"));
+        assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
+                "isContinuousLog() should return false when indexes are not continuous");
     }
 
     @Test
@@ -94,8 +93,8 @@ public class UpdateLogTests {
         this.updateLog.setTimestamp(timestamp1);
         arbitraryLog.setTimestamp(timestamp2);
 
-        assertEquals(true, this.updateLog.isContinuousLog(arbitraryLog),
-                String.format("isContinuousLog() should return true when logs are continuous"));
+        assertTrue(this.updateLog.isContinuousLog(arbitraryLog),
+                "isContinuousLog() should return true when logs are continuous");
     }
 
     @Test
@@ -120,35 +119,26 @@ public class UpdateLogTests {
                 "isContinuousLog() should update startPosition to be 20");
 
         assertEquals(30, continuousLogs.getKey().getUpdateRequest().getEndPosition(),
-                "isContinuousLog() should update EndPosition to be 20");
+                "isContinuousLog() should update EndPosition to be 30");
     }
 
     @Test
-    @DisplayName("unite() updates log's content for appendRange UpdateLogs")
-    void unite_AppendRangeLogs_UpdatesContent() {
-        Pair<String, String> contents = new Pair<>("Lior", "Mathan");
-        Pair<UpdateLog, UpdateLog> continuousLogs = getContinuousLogs(UpdateRequest.UpdateType.APPEND_RANGE, contents);
-        continuousLogs.getKey().getUpdateRequest().setStartPosition(10);
-        continuousLogs.getKey().getUpdateRequest().setEndPosition(20);
-        continuousLogs.getValue().getUpdateRequest().setStartPosition(12);
-        continuousLogs.getValue().getUpdateRequest().setEndPosition(50);
-        continuousLogs.getKey().unite(continuousLogs.getValue());
+    @DisplayName("unite() updates log's indexes for delete UpdateLogs")
+    void unite_DeleteLogs_UpdatesIndexes() {
+        Pair<String, String> contents = new Pair<>("", "");
+        Pair<UpdateLog, UpdateLog> continuousLogs = getContinuousLogs(UpdateRequest.UpdateType.DELETE, contents);
+        continuousLogs.getKey().getUpdateRequest().setStartPosition(20);
+        continuousLogs.getKey().getUpdateRequest().setEndPosition(18);
+        continuousLogs.getValue().getUpdateRequest().setStartPosition(18);
+        continuousLogs.getValue().getUpdateRequest().setEndPosition(17);
 
-        assertEquals("LiorMathan", continuousLogs.getKey().getUpdateRequest().getContent(),
-                "isContinuousLog() should update content to be: LiorMathan");
-    }
-    @Test
-    @DisplayName("unite() updates log's indexes for appendRange UpdateLogs")
-    void unite_AppendRangeLogs_UpdatesIndexes() {
-        Pair<String, String> contents = new Pair<>("Lior", "Mathan");
-        Pair<UpdateLog, UpdateLog> continuousLogs = getContinuousLogs(UpdateRequest.UpdateType.APPEND, contents);
         continuousLogs.getKey().unite(continuousLogs.getValue());
 
         assertEquals(20, continuousLogs.getKey().getUpdateRequest().getStartPosition(),
                 "isContinuousLog() should update startPosition to be 20");
 
-        assertEquals(30, continuousLogs.getKey().getUpdateRequest().getEndPosition(),
-                "isContinuousLog() should update EndPosition to be 20");
+        assertEquals(17, continuousLogs.getKey().getUpdateRequest().getEndPosition(),
+                "isContinuousLog() should update EndPosition to be 17");
     }
 
     Pair<UpdateLog, UpdateLog> getContinuousLogs(UpdateRequest.UpdateType type, Pair<String, String> contents) {
@@ -175,7 +165,7 @@ public class UpdateLogTests {
         log1.getUpdateRequest().setContent(contents.getKey());
         log2.getUpdateRequest().setContent(contents.getValue());
 
-        assertEquals(true, log1.isContinuousLog(log2));
+        assertTrue(log1.isContinuousLog(log2));
         return new Pair<>(log1, log2);
     }
 
