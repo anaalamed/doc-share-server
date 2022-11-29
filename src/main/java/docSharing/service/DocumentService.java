@@ -11,6 +11,7 @@ import docSharing.repository.FolderRepository;
 import docSharing.repository.PermissionRepository;
 import docSharing.repository.UserRepository;
 import docSharing.utils.GMailer;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
@@ -242,6 +243,7 @@ public class DocumentService {
         documentsContentDBCache.remove(documentID);
     }
 
+    @Scheduled(fixedDelay = 10000)
     private void updateContentOnDB(){
         documentsContentCache.forEach((key, value)->{
             if (!documentsContentDBCache.containsKey(key) || !value.equals(documentsContentDBCache.get(key))) {
