@@ -17,6 +17,7 @@ public class UpdateLog {
     @JoinColumn(name = "update_id")
     private UpdateRequest updateRequest;
     private LocalDateTime timestamp;
+    private final int MAX_SECONDS_TO_UNITE = 5;
 
     public UpdateLog(UpdateRequest updateRequest, LocalDateTime timestamp) {
         this.updateRequest = updateRequest;
@@ -42,15 +43,15 @@ public class UpdateLog {
     public boolean isContinuousLog(UpdateLog updateLog) {
         return (isSameUser(updateLog) &&
                 isMatchingType(updateLog) &&
-                isFromLastXSeconds(updateLog, 5) &&
+                isFromLastXSeconds(updateLog, MAX_SECONDS_TO_UNITE) &&
                 isContinuousIndex(updateLog));
     }
 
     public void unite(UpdateLog updateLog) {
-        int previousStart       = this.getUpdateRequest().getStartPosition();
-        int previousEnd         = this.getUpdateRequest().getEndPosition();
-        int currentStart        = updateLog.getUpdateRequest().getStartPosition();
-        int currentEnd          = updateLog.getUpdateRequest().getEndPosition();
+        int previousStart = this.getUpdateRequest().getStartPosition();
+        int previousEnd = this.getUpdateRequest().getEndPosition();
+        int currentStart = updateLog.getUpdateRequest().getStartPosition();
+        int currentEnd = updateLog.getUpdateRequest().getEndPosition();
 
         switch(this.getUpdateRequest().getType()) {
             case APPEND:
@@ -59,15 +60,12 @@ public class UpdateLog {
                 this.updateRequest.setStartPosition(min(previousStart, currentStart));
                 this.updateRequest.setEndPosition(max(previousEnd, currentEnd));
                 break;
-
             case DELETE:
                 this.updateRequest.setEndPosition(min(previousEnd, currentEnd));
                 break;
-
             case DELETE_RANGE:
                 this.updateRequest.setStartPosition(min(previousStart, currentEnd));
                 break;
-
             default:
                 throw new IllegalArgumentException(
                         String.format("Update type: %s is not supported!", updateLog.getUpdateRequest().getType()));
@@ -77,10 +75,10 @@ public class UpdateLog {
     }
 
     private void appendContent(UpdateLog updateLog) {
-        String previousContent  = this.updateRequest.getContent();
-        int previousStart       = this.getUpdateRequest().getStartPosition();
-        int currentStart        = updateLog.getUpdateRequest().getStartPosition();
-        int currentEnd          = updateLog.getUpdateRequest().getEndPosition();
+        String previousContent = this.updateRequest.getContent();
+        int previousStart = this.getUpdateRequest().getStartPosition();
+        int currentStart = updateLog.getUpdateRequest().getStartPosition();
+        int currentEnd = updateLog.getUpdateRequest().getEndPosition();
 
         this.updateRequest.setContent(previousContent.substring(0, currentStart - previousStart)
                 + updateLog.getUpdateRequest().getContent()
@@ -88,7 +86,7 @@ public class UpdateLog {
     }
 
     private boolean isSameUser(UpdateLog updateLog) {
-        return this.getUpdateRequest().getUserEmail() == updateLog.getUpdateRequest().getUserEmail();
+        return this.getUpdateRequest().getUserEmail().equals(updateLog.getUpdateRequest().getUserEmail());
     }
 
     private boolean isMatchingType(UpdateLog updateLog) {
