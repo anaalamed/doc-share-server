@@ -24,12 +24,12 @@ public class UserService {
 
 
     public Optional<UserDTO> getByEmail(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (!user.isPresent()) {
             return Optional.empty();
         }
 
-        return Optional.of(new UserDTO(user));
+        return Optional.of(new UserDTO(user.get()));
     }
 
     public boolean deleteUser(int id) {

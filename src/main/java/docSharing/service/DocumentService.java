@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -57,7 +56,7 @@ public class DocumentService {
         }
 
         Optional<Folder> parent = folderRepository.findById(parentId);
-        Utils.validateUniqueTitle(parent, title);
+        Utils.validateTitle(parent, title);
 
         Document document = new Document(owner.get(), parentId, title);
         updateContentOnCache(document.getId(), document.getContent());
@@ -102,7 +101,7 @@ public class DocumentService {
         Document document = documentRepository.getReferenceById(id);
         Optional<Folder> parentToBe = folderRepository.findById(parentId);
 
-        Utils.validateUniqueTitle(parentToBe, document.getMetadata().getTitle());
+        Utils.validateTitle(parentToBe, document.getMetadata().getTitle());
 
         removeDocumentFromParentSubFiles(document);
         document.getMetadata().setParentId(parentId);
@@ -116,7 +115,7 @@ public class DocumentService {
         Document document = documentRepository.getReferenceById(id);
         Optional<Folder> parent = folderRepository.findById(document.getMetadata().getParentId());
 
-        Utils.validateUniqueTitle(parent, title);
+        Utils.validateTitle(parent, title);
         document.setTitle(title);
 
         return documentRepository.save(document);
@@ -193,18 +192,21 @@ public class DocumentService {
         }
     }
 
-    public void importFile(String path, int ownerId, int parentID){
+    public Document importFile(String path, int ownerId, int parentID){
         Document document = createDocument(ownerId,parentID, getFileName(path));
         updateContent(document.getId(), readFromFile(path));
+
+        return document;
     }
 
     public void exportFile(int documentId){
         Document document = documentRepository.getReferenceById(documentId);
 
-        String filename=document.getMetadata().getTitle();
-        String content=document.getContent();
+        String filename = document.getMetadata().getTitle();
+        String content = document.getContent();
         String home = System.getProperty("user.home");
-        String filePath = home+"\\Downloads\\" + filename + ".txt";
+        String filePath = home + "\\Downloads\\" + filename + ".txt";
+
         writeToFile(content, filePath);
     }
 }
