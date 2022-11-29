@@ -1,10 +1,10 @@
 package docSharing.utils;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 public class FilesUtils {
     public static String getFileName(String filePath){
@@ -13,13 +13,13 @@ public class FilesUtils {
     }
 
     public static String readFromFile(String path){
-        String str = "";
+        String data = "";
         try {
-            str = new String(Files.readAllBytes(Paths.get(path)));
+            data = new String(Files.readAllBytes(Paths.get(path)));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return str;
+        return data;
     }
 
     public static  void writeToFile(String content, String path){
