@@ -19,6 +19,14 @@ public class UpdateRequest {
     public UpdateRequest() {
     }
 
+    public UpdateRequest(UpdateRequestBuilder builder) {
+        this.userEmail = builder.userEmail;
+        this.type = builder.type;
+        this.content = builder.content;
+        this.startPosition = builder.startPosition;
+        this.endPosition = builder.endPosition;
+    }
+
     public String getUserEmail() {
         return userEmail;
     }
@@ -64,5 +72,45 @@ public class UpdateRequest {
         APPEND,
         DELETE_RANGE,
         APPEND_RANGE
+    }
+
+    public static class UpdateRequestBuilder {
+        private String userEmail;
+        private UpdateType type;
+        private String content;
+        private int startPosition;
+        private int endPosition;
+
+        public UpdateRequestBuilder() {
+        }
+
+        public UpdateRequestBuilder setUserEmail(String userEmail) {
+            this.userEmail = userEmail;
+            return this;
+        }
+
+        public UpdateRequestBuilder setType(UpdateType type) {
+            this.type = type;
+            return this;
+        }
+
+        public UpdateRequestBuilder setContent(String content) {
+            this.content = content;
+            return this;
+        }
+
+        public UpdateRequestBuilder setStartPosition(int startPosition) {
+            this.startPosition = startPosition;
+            return this;
+        }
+
+        public UpdateRequestBuilder setEndPosition(int endPosition) {
+            this.endPosition = endPosition;
+            return this;
+        }
+
+        public UpdateRequest build() {
+            return new UpdateRequest(this);
+        }
     }
 }
