@@ -39,6 +39,10 @@ public class PermissionService {
     }
 
     public void updatePermission(int documentId, int userId, Permission permission) {
+        if (isOwner(userId, documentId)) {
+            throw new IllegalArgumentException("Cannot change owner's permissions!");
+        }
+
         List<Authorization> authorizations = permissionRepository.findByDocumentAndUser(documentId, userId);
         if (!authorizations.isEmpty()) {
             authorizations.get(0).setPermission(permission);
@@ -55,5 +59,10 @@ public class PermissionService {
         }
 
         return (authorizations.get(0).getPermission().compareTo(permission) <= 0);
+    }
+
+    private boolean isOwner(int userId, int documentId) {
+        Document document = documentRepository.getReferenceById(documentId);
+        return document.getMetadata().getOwner().getId() == userId;
     }
 }
