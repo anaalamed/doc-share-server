@@ -2,6 +2,7 @@ package docSharing.service;
 
 import docSharing.controller.request.UserRequest;
 import docSharing.entities.DTO.UserDTO;
+import docSharing.entities.LoginData;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
 import docSharing.repository.UserRepository;
@@ -56,18 +57,18 @@ public class AuthService {
         return new UserDTO(user);
     }
 
-    public Optional<String> login(UserRequest userRequest) {
+    public Optional<LoginData> login(UserRequest userRequest) {
         logger.info("in login()");
 
         Optional<User> user = userRepository.findByEmail(userRequest.getEmail());
-        Optional<String> token = Optional.empty();
 
         if (user.isPresent() && verifyPassword(userRequest.getPassword(), user.get().getPassword())) {
-            token = Optional.of(Utils.generateUniqueToken()) ;
+            Optional<String> token = Optional.of(Utils.generateUniqueToken());
             usersTokensMap.put(user.get().getId(), token.get());
+            return Optional.of(new LoginData(user.get().getId(), token.get()));
         }
 
-        return token;
+        return Optional.empty();
     }
 
     public boolean isEnabledUser(UserRequest userRequest) {

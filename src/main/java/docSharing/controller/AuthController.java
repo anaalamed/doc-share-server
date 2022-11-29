@@ -4,6 +4,7 @@ import docSharing.controller.request.UserRequest;
 import docSharing.controller.response.BaseResponse;
 
 import docSharing.entities.DTO.UserDTO;
+import docSharing.entities.LoginData;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
 import docSharing.service.AuthService;
@@ -56,30 +57,20 @@ public class AuthController {
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "/login")
-    public  ResponseEntity<BaseResponse<String>> login(@RequestBody UserRequest userRequest) {
+    public  ResponseEntity<BaseResponse<LoginData>> login(@RequestBody UserRequest userRequest) {
         logger.info("in login()");
-
-        if (userRequest.getEmail() == null || !InputValidation.isValidEmail(userRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email!"));
-        }
-        if (userRequest.getPassword() == null || !InputValidation.isValidPassword(userRequest.getPassword())) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
-        }
 
         if (!authService.isEnabledUser(userRequest)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("You must confirm your email first!"));
         }
 
-        Optional<String> token = authService.login(userRequest);
-        if (!token.isPresent()) {
-            logger.warn("User " + userRequest.getEmail() + " failed to log in");
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Wrong Email or Password - Login failed!"));
-        }
+        Optional<LoginData> loginData = authService.login(userRequest);
 
-        logger.info("User with email" + userRequest.getEmail() + "logged in");
-        return ResponseEntity.ok(BaseResponse.success(token.get()));
+        logger.info("User with email " + userRequest.getEmail() + " has logged in");
+
+        return loginData.map(value -> ResponseEntity.ok(BaseResponse.success(value))).
+                orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("Failed to log in: Wrong Email or Password")));
     }
-
 
     @GetMapping("/registrationConfirm")
     public String confirmRegistration(WebRequest request, @RequestParam("token") String token) {
