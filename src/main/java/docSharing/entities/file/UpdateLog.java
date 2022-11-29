@@ -60,15 +60,12 @@ public class UpdateLog {
                 this.updateRequest.setStartPosition(min(previousStart, currentStart));
                 this.updateRequest.setEndPosition(max(previousEnd, currentEnd));
                 break;
-
             case DELETE:
                 this.updateRequest.setEndPosition(min(previousEnd, currentEnd));
                 break;
-
             case DELETE_RANGE:
                 this.updateRequest.setStartPosition(min(previousStart, currentEnd));
                 break;
-
             default:
                 throw new IllegalArgumentException(
                         String.format("Update type: %s is not supported!", updateLog.getUpdateRequest().getType()));
