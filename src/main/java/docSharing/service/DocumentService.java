@@ -1,5 +1,6 @@
 package docSharing.service;
 
+import docSharing.entities.file.File;
 import docSharing.entities.file.UpdateLog;
 import docSharing.repository.*;
 import docSharing.utils.Utils;
@@ -12,7 +13,10 @@ import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static docSharing.utils.FilesUtils.*;
 
@@ -24,6 +28,7 @@ public class DocumentService {
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
     private final UpdateLogRepository updateLogRepository;
+    private Map<Integer, Document> documentsCache;
 
 
     private DocumentService(DocumentRepository documentRepository, FolderRepository folderRepository,
@@ -34,6 +39,14 @@ public class DocumentService {
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
         this.updateLogRepository = updateLogRepository;
+
+        this.loadDocumentCache();
+
+    }
+
+    private void loadDocumentCache() {
+        this.documentsCache = documentRepository.findAll().stream()
+                .collect(Collectors.toMap(File::getId, Function.identity()));
     }
 
     /**
@@ -73,10 +86,10 @@ public class DocumentService {
         Utils.validateTitle(parent, title);
 
         Document document = new Document(owner.get(), parentId, title);
-        Document savedDocument = documentRepository.save(document);
+        this.documentsCache.put(document.getId(), documentRepository.save(document));
         addDocumentToParentSubFiles(document);
 
-        return savedDocument;
+        return this.documentsCache.get(document.getId());
     }
 
     /**
@@ -85,30 +98,30 @@ public class DocumentService {
      * @param updateRequest
      */
     public void update(int documentId, UpdateRequest updateRequest) {
-        Optional<Document> document = documentRepository.findById(documentId);
-        if (document.isPresent()) {
-            UpdateLog updateLog = document.get().updateContent(updateRequest);
+        Document document = documentsCache.get(documentId);
+        UpdateLog updateLog = document.updateContent(updateRequest);
 
-            if (document.get().isContinuousLog(updateLog)) {
-                document.get().updateLastLog(updateLog);
-            } else {
-                if (document.get().getLastUpdate() != null) {
-                    updateLogRepository.save(document.get().getLastUpdate());
-                }
-                document.get().setLastUpdate(updateLog);
-                documentRepository.save(document.get());
+        if (document.isContinuousLog(updateLog)) {
+            document.updateLastLog(updateLog);
+        } else {
+            if (document.getLastUpdate() != null) {
+                updateLogRepository.save(document.getLastUpdate());
             }
+
+            document.setLastUpdate(updateLog);
         }
+
+        documentRepository.save(document);
     }
 
     /**
      * Updates document's parent folder.
-     * @param id
+     * @param documentId
      * @param parentId
      * @return
      */
-    public Document setParent(int id, int parentId) {
-        Document document = documentRepository.getReferenceById(id);
+    public Document setParent(int documentId, int parentId) {
+        Document document = this.documentsCache.get(documentId);
         Optional<Folder> parentToBe = folderRepository.findById(parentId);
 
         Utils.validateTitle(parentToBe, document.getMetadata().getTitle());
@@ -123,12 +136,12 @@ public class DocumentService {
 
     /**
      * Updates document's title.
-     * @param id
+     * @param documentId
      * @param title
      * @return
      */
-    public Document setTitle(int id, String title) {
-        Document document = documentRepository.getReferenceById(id);
+    public Document setTitle(int documentId, String title) {
+        Document document = this.documentsCache.get(documentId);
         Optional<Folder> parent = folderRepository.findById(document.getMetadata().getParentId());
 
         Utils.validateTitle(parent, title);
@@ -145,9 +158,9 @@ public class DocumentService {
      * @return Success status
      */
     public boolean notifyShareByEmail(int documentId, String email, Permission permission) {
-        Document document = documentRepository.getReferenceById(documentId);
-
         try {
+            Document document = this.documentsCache.get(documentId);
+
             String subject = "Document shared with you: " + document.getMetadata().getTitle();
             String message = String.format("The document owner has invited you to %s the following document: %s",
                     permission.toString(), generateUrl(documentId));
@@ -176,7 +189,7 @@ public class DocumentService {
      * @return The imported document
      */
     public Document importFile(String path, int ownerId, int parentID){
-        Document document = createDocument(ownerId,parentID, getFileName(path));
+        Document document = createDocument(ownerId, parentID, getFileName(path));
         updateContent(document.getId(), readFromFile(path));
 
         return document;
@@ -211,6 +224,7 @@ public class DocumentService {
         try {
             removeDocumentFromParentSubFiles(document.get());
             permissionRepository.deleteByDocumentId(documentId);
+            updateLogRepository.deleteByDocumentId(documentId);
             documentRepository.delete(document.get());
         } catch (Exception e) {
             return false;
@@ -238,13 +252,13 @@ public class DocumentService {
     }
 
     private void updateContent(int documentId, String content) {
-        Document updatedDocument = documentRepository.getReferenceById(documentId);
-        updatedDocument.setContent(content);
-        documentRepository.save(updatedDocument);
+        Document document = this.documentsCache.get(documentId);
+        document.setContent(content);
+        documentRepository.save(document);
     }
 
     private String generateUrl(int documentId) {
-        Document document = documentRepository.getReferenceById(documentId);
+        Document document = this.documentsCache.get(documentId);
 
         String url = document.getMetadata().getTitle();
         int parentId = document.getMetadata().getParentId();

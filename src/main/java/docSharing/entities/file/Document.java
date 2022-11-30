@@ -22,21 +22,16 @@ public class Document extends File {
     @Transient
     private UpdateLog lastUpdate;
 
-//    @OneToMany(targetEntity=UpdateLog.class)
-//    private final List<UpdateLog> updateLogs;
-
 
     public Document() {
         super();
         this.activeUsers = new ArrayList<>();
-//        this.updateLogs = new ArrayList<>();
     }
 
     public Document(User owner, int parentId, String title) {
         super(owner, parentId, title);
         this.content = new Content();
         this.activeUsers = new ArrayList<>();
-//        this.updateLogs = new ArrayList<>();
     }
 
     public void setContent(String content) {

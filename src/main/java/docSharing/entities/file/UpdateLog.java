@@ -25,7 +25,6 @@ public class UpdateLog {
     @JoinColumn(name = "document_id", referencedColumnName = "id")
     private Document document;
 
-
     @Transient
     private final int MAX_SECONDS_TO_UNITE = 5;
 
