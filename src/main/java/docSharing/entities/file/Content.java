@@ -38,7 +38,7 @@ public class Content {
 
     public String delete(int start, int end) {
         int count = start - end;
-        this.content = this.content.substring(max(0, start - count)) + this.content.substring(start);
+        this.content = this.content.substring(0, max(0, start - count)) + this.content.substring(start);
 
         return this.content;
     }

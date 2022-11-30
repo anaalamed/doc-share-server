@@ -9,13 +9,9 @@ import docSharing.entities.file.Document;
 import docSharing.entities.file.Folder;
 import docSharing.entities.permission.Permission;
 import docSharing.utils.GMailer;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static docSharing.utils.FilesUtils.*;
@@ -29,9 +25,6 @@ public class DocumentService {
     private final PermissionRepository permissionRepository;
     private final UpdateLogRepository updateLogRepository;
 
-    static Map<Integer,String> documentsContentCache = new HashMap<>();
-    static Map<Integer,String> documentsContentDBCache = new HashMap<>();
-
 
     private DocumentService(DocumentRepository documentRepository, FolderRepository folderRepository,
                             UserRepository userRepository, PermissionRepository permissionRepository,
@@ -41,17 +34,6 @@ public class DocumentService {
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
         this.updateLogRepository = updateLogRepository;
-
-        this.loadCache();
-    }
-
-    private void loadCache() {
-        List<Document> allDocuments = documentRepository.findAll();
-
-        for (Document document : allDocuments) {
-            documentsContentCache.put(document.getId(), document.getContent());
-            documentsContentDBCache.put(document.getId(), document.getContent());
-        }
     }
 
     /**
@@ -91,7 +73,6 @@ public class DocumentService {
         Utils.validateTitle(parent, title);
 
         Document document = new Document(owner.get(), parentId, title);
-        updateContentOnCache(document.getId(), document.getContent());
         Document savedDocument = documentRepository.save(document);
         addDocumentToParentSubFiles(document);
 
@@ -115,8 +96,8 @@ public class DocumentService {
                     updateLogRepository.save(document.get().getLastUpdate());
                 }
                 document.get().setLastUpdate(updateLog);
+                documentRepository.save(document.get());
             }
-            updateContentOnCache(documentId, document.get().getContent());
         }
     }
 
@@ -183,7 +164,6 @@ public class DocumentService {
      * @return The document's URL
      */
     public String getUrl(int documentId) {
-        Document document = documentRepository.getReferenceById(documentId);
         return generateUrl(documentId);
     }
 
@@ -232,7 +212,6 @@ public class DocumentService {
             removeDocumentFromParentSubFiles(document.get());
             permissionRepository.deleteByDocumentId(documentId);
             documentRepository.delete(document.get());
-            deleteFromCache(document.get().getId());
         } catch (Exception e) {
             return false;
         }
@@ -258,29 +237,10 @@ public class DocumentService {
         }
     }
 
-    private void updateContentOnCache(int documentId, String content){
-        documentsContentCache.put(documentId, content);
-    }
-
-    private void deleteFromCache(int documentID){
-        documentsContentCache.remove(documentID);
-        documentsContentDBCache.remove(documentID);
-    }
-
-    @Scheduled(fixedDelay = 10000)
-    public void updateContentOnDB(){
-        documentsContentCache.forEach((key, value)->{
-            if (!documentsContentDBCache.containsKey(key) || !value.equals(documentsContentDBCache.get(key))) {
-                updateContent(key, value);
-            }
-        });
-    }
-
-    private void updateContent(int documentId, String content){
+    private void updateContent(int documentId, String content) {
         Document updatedDocument = documentRepository.getReferenceById(documentId);
         updatedDocument.setContent(content);
         documentRepository.save(updatedDocument);
-        updateContentOnCache(documentId, content);
     }
 
     private String generateUrl(int documentId) {
