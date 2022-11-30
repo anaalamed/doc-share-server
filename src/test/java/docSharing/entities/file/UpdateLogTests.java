@@ -25,8 +25,8 @@ public class UpdateLogTests {
         String userEmail1 = "lior.mathan@gmail.com";
         String userEmail2 = "tal@gmail.com";
         UpdateLog arbitraryLog = createArbitraryUpdateLog();
-        this.updateLog.getUpdateRequest().setUserEmail(userEmail1);
-        arbitraryLog.getUpdateRequest().setUserEmail(userEmail2);
+        this.updateLog.setUserEmail(userEmail1);
+        arbitraryLog.setUserEmail(userEmail2);
 
         assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
                 "isContinuousLog() should return false for different users");
@@ -39,8 +39,8 @@ public class UpdateLogTests {
         UpdateRequest.UpdateType type2 = UpdateRequest.UpdateType.DELETE;
 
         UpdateLog arbitraryLog = createArbitraryUpdateLog();
-        this.updateLog.getUpdateRequest().setType(type1);
-        arbitraryLog.getUpdateRequest().setType(type2);
+        this.updateLog.setType(type1);
+        arbitraryLog.setType(type2);
 
         assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
                 "isContinuousLog() should return false for different types");
@@ -64,10 +64,10 @@ public class UpdateLogTests {
     @DisplayName("isContinuousLog() returns false when indexes are not continuous")
     void isContinuousLog_NonContinuousIndexes_ReturnsFalse() {
         UpdateLog arbitraryLog = createArbitraryUpdateLog();
-        this.updateLog.getUpdateRequest().setStartPosition(20);
-        this.updateLog.getUpdateRequest().setEndPosition(22);
-        arbitraryLog.getUpdateRequest().setStartPosition(24);
-        arbitraryLog.getUpdateRequest().setEndPosition(25);
+        this.updateLog.setStartPosition(20);
+        this.updateLog.setEndPosition(22);
+        arbitraryLog.setStartPosition(24);
+        arbitraryLog.setEndPosition(25);
 
         assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
                 "isContinuousLog() should return false when indexes are not continuous");
@@ -77,17 +77,17 @@ public class UpdateLogTests {
     @DisplayName("isContinuousLog() returns true when logs are continuous")
     void isContinuousLog_ContinuousLogs_ReturnsTrue() {
         UpdateLog arbitraryLog = createArbitraryUpdateLog();
-        this.updateLog.getUpdateRequest().setStartPosition(20);
-        this.updateLog.getUpdateRequest().setEndPosition(22);
-        arbitraryLog.getUpdateRequest().setStartPosition(23);
-        arbitraryLog.getUpdateRequest().setEndPosition(24);
+        this.updateLog.setStartPosition(20);
+        this.updateLog.setEndPosition(22);
+        arbitraryLog.setStartPosition(23);
+        arbitraryLog.setEndPosition(24);
 
-        this.updateLog.getUpdateRequest().setType(UpdateRequest.UpdateType.APPEND);
-        arbitraryLog.getUpdateRequest().setType(UpdateRequest.UpdateType.APPEND);
+        this.updateLog.setType(UpdateRequest.UpdateType.APPEND);
+        arbitraryLog.setType(UpdateRequest.UpdateType.APPEND);
 
         String email = "lior.mathan@gmail.com";
-        this.updateLog.getUpdateRequest().setUserEmail(email);
-        arbitraryLog.getUpdateRequest().setUserEmail(email);
+        this.updateLog.setUserEmail(email);
+        arbitraryLog.setUserEmail(email);
 
         LocalDateTime timestamp1 = LocalDateTime.now();
         LocalDateTime timestamp2 = timestamp1.plusSeconds(3);
@@ -105,7 +105,7 @@ public class UpdateLogTests {
                 "Lior", "Mathan");
         continuousLogs.get(0).unite(continuousLogs.get(1));
 
-        assertEquals("LiorMathan", continuousLogs.get(0).getUpdateRequest().getContent(),
+        assertEquals("LiorMathan", continuousLogs.get(0).getContent(),
                 "isContinuousLog() should update content to be: LiorMathan");
     }
 
@@ -116,10 +116,10 @@ public class UpdateLogTests {
                 "Lior", "Mathan");
         continuousLogs.get(0).unite(continuousLogs.get(1));
 
-        assertEquals(20, continuousLogs.get(0).getUpdateRequest().getStartPosition(),
+        assertEquals(20, continuousLogs.get(0).getStartPosition(),
                 "isContinuousLog() should update startPosition to be 20");
 
-        assertEquals(30, continuousLogs.get(0).getUpdateRequest().getEndPosition(),
+        assertEquals(30, continuousLogs.get(0).getEndPosition(),
                 "isContinuousLog() should update EndPosition to be 30");
     }
 
@@ -128,17 +128,17 @@ public class UpdateLogTests {
     void unite_DeleteLogs_UpdatesIndexes() {
         List<UpdateLog> continuousLogs = getContinuousLogs(UpdateRequest.UpdateType.DELETE,
                 "Lior", "Mathan");
-        continuousLogs.get(0).getUpdateRequest().setStartPosition(20);
-        continuousLogs.get(0).getUpdateRequest().setEndPosition(18);
-        continuousLogs.get(1).getUpdateRequest().setStartPosition(18);
-        continuousLogs.get(1).getUpdateRequest().setEndPosition(17);
+        continuousLogs.get(0).setStartPosition(20);
+        continuousLogs.get(0).setEndPosition(18);
+        continuousLogs.get(1).setStartPosition(18);
+        continuousLogs.get(1).setEndPosition(17);
 
         continuousLogs.get(0).unite(continuousLogs.get(1));
 
-        assertEquals(20, continuousLogs.get(0).getUpdateRequest().getStartPosition(),
+        assertEquals(20, continuousLogs.get(0).getStartPosition(),
                 "isContinuousLog() should update startPosition to be 20");
 
-        assertEquals(17, continuousLogs.get(0).getUpdateRequest().getEndPosition(),
+        assertEquals(17, continuousLogs.get(0).getEndPosition(),
                 "isContinuousLog() should update EndPosition to be 17");
     }
 
@@ -146,25 +146,25 @@ public class UpdateLogTests {
         UpdateLog log1 = createArbitraryUpdateLog();
         UpdateLog log2 = createArbitraryUpdateLog();
 
-        log1.getUpdateRequest().setStartPosition(20);
-        log1.getUpdateRequest().setEndPosition(20 + content1.length());
-        log2.getUpdateRequest().setStartPosition(20 + content1.length());
-        log2.getUpdateRequest().setEndPosition(20 + content1.length() + content2.length());
+        log1.setStartPosition(20);
+        log1.setEndPosition(20 + content1.length());
+        log2.setStartPosition(20 + content1.length());
+        log2.setEndPosition(20 + content1.length() + content2.length());
 
-        log1.getUpdateRequest().setType(type);
-        log2.getUpdateRequest().setType(type);
+        log1.setType(type);
+        log2.setType(type);
 
         String email = "lior.mathan@gmail.com";
-        log1.getUpdateRequest().setUserEmail(email);
-        log2.getUpdateRequest().setUserEmail(email);
+        log1.setUserEmail(email);
+        log2.setUserEmail(email);
 
         LocalDateTime timestamp1 = LocalDateTime.now();
         LocalDateTime timestamp2 = timestamp1.plusSeconds(3);
         log1.setTimestamp(timestamp1);
         log2.setTimestamp(timestamp2);
 
-        log1.getUpdateRequest().setContent(content1);
-        log2.getUpdateRequest().setContent(content2);
+        log1.setContent(content1);
+        log2.setContent(content2);
 
         assertTrue(log1.isContinuousLog(log2));
 
@@ -179,6 +179,6 @@ public class UpdateLogTests {
         UpdateRequest updateRequest = new UpdateRequest.UpdateRequestBuilder()
                 .setUserEmail("lior.mathan@gmail.com").setType(UpdateRequest.UpdateType.APPEND)
                 .setStartPosition(10).setEndPosition(12).build();
-        return new UpdateLog(updateRequest, LocalDateTime.now());
+        return new UpdateLog(updateRequest, LocalDateTime.now(), null);
     }
 }

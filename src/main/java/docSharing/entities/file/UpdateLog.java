@@ -9,99 +9,150 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 @Entity
+@Table(name = "documents_update_logs")
 public class UpdateLog {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "update_id")
-    private UpdateRequest updateRequest;
     private LocalDateTime timestamp;
+    private String userEmail;
+    private UpdateRequest.UpdateType type;
+    private String content;
+    private int startPosition;
+    private int endPosition;
+
+    @ManyToOne
+    @JoinColumn(name = "document_id", referencedColumnName = "id")
+    private Document document;
+
+
+    @Transient
     private final int MAX_SECONDS_TO_UNITE = 5;
 
-    public UpdateLog(UpdateRequest updateRequest, LocalDateTime timestamp) {
-        this.updateRequest = updateRequest;
-        this.timestamp = timestamp;
+    public UpdateLog() {
     }
 
-    public UpdateRequest getUpdateRequest() {
-        return updateRequest;
+    public UpdateLog(UpdateRequest updateRequest, LocalDateTime timestamp, Document document) {
+        this.userEmail = updateRequest.getUserEmail();
+        this.type = updateRequest.getType();
+        this.content = updateRequest.getContent();
+        this.startPosition = updateRequest.getStartPosition();
+        this.endPosition = updateRequest.getEndPosition();
+        this.timestamp = timestamp;
+        this.document = document;
     }
 
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
 
-    public void setUpdateRequest(UpdateRequest updateRequest) {
-        this.updateRequest = updateRequest;
-    }
-
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
 
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public UpdateRequest.UpdateType getType() {
+        return type;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public int getStartPosition() {
+        return startPosition;
+    }
+
+    public int getEndPosition() {
+        return endPosition;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public void setType(UpdateRequest.UpdateType type) {
+        this.type = type;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setStartPosition(int startPosition) {
+        this.startPosition = startPosition;
+    }
+
+    public void setEndPosition(int endPosition) {
+        this.endPosition = endPosition;
+    }
+
     public boolean isContinuousLog(UpdateLog updateLog) {
-        return (isSameUser(updateLog) &&
+        return (updateLog != null &&
+                isSameUser(updateLog) &&
                 isMatchingType(updateLog) &&
                 isFromLastXSeconds(updateLog, MAX_SECONDS_TO_UNITE) &&
                 isContinuousIndex(updateLog));
     }
 
     public void unite(UpdateLog updateLog) {
-        int previousStart = this.getUpdateRequest().getStartPosition();
-        int previousEnd = this.getUpdateRequest().getEndPosition();
-        int currentStart = updateLog.getUpdateRequest().getStartPosition();
-        int currentEnd = updateLog.getUpdateRequest().getEndPosition();
+        int previousStart = this.getStartPosition();
+        int previousEnd = this.getEndPosition();
+        int currentStart = updateLog.getStartPosition();
+        int currentEnd = updateLog.getEndPosition();
 
-        switch(this.getUpdateRequest().getType()) {
+        switch(this.type) {
             case APPEND:
             case APPEND_RANGE:
                 appendContent(updateLog);
-                this.updateRequest.setStartPosition(min(previousStart, currentStart));
-                this.updateRequest.setEndPosition(max(previousEnd, currentEnd));
+                this.setStartPosition(min(previousStart, currentStart));
+                this.setEndPosition(max(previousEnd, currentEnd));
                 break;
             case DELETE:
-                this.updateRequest.setEndPosition(min(previousEnd, currentEnd));
+                this.setEndPosition(min(previousEnd, currentEnd));
                 break;
             case DELETE_RANGE:
-                this.updateRequest.setStartPosition(min(previousStart, currentEnd));
+                this.setStartPosition(min(previousStart, currentEnd));
                 break;
             default:
                 throw new IllegalArgumentException(
-                        String.format("Update type: %s is not supported!", updateLog.getUpdateRequest().getType()));
+                        String.format("Update type: %s is not supported!", updateLog.getType()));
         }
 
         this.setTimestamp(updateLog.getTimestamp());
     }
 
     private void appendContent(UpdateLog updateLog) {
-        String previousContent = this.updateRequest.getContent();
-        int previousStart = this.getUpdateRequest().getStartPosition();
-        int currentStart = updateLog.getUpdateRequest().getStartPosition();
-        int currentEnd = updateLog.getUpdateRequest().getEndPosition();
+        String previousContent = this.getContent();
+        int previousStart = this.getStartPosition();
+        int currentStart = updateLog.getStartPosition();
+        int currentEnd = updateLog.getEndPosition();
 
-        this.updateRequest.setContent(previousContent.substring(0, currentStart - previousStart)
-                + updateLog.getUpdateRequest().getContent()
+        this.setContent(previousContent.substring(0, currentStart - previousStart)
+                + updateLog.getContent()
                 + previousContent.substring(min(previousContent.length(), currentEnd - previousStart)));
     }
 
     private boolean isSameUser(UpdateLog updateLog) {
-        return this.getUpdateRequest().getUserEmail().equals(updateLog.getUpdateRequest().getUserEmail());
+        return this.getUserEmail().equals(updateLog.getUserEmail());
     }
 
     private boolean isMatchingType(UpdateLog updateLog) {
-        switch (this.getUpdateRequest().getType()) {
+        switch (this.getType()) {
             case APPEND:
             case APPEND_RANGE:
-                return updateLog.getUpdateRequest().getType() == UpdateRequest.UpdateType.APPEND;
+                return updateLog.getType() == UpdateRequest.UpdateType.APPEND;
 
             case DELETE:
             case DELETE_RANGE:
-                return updateLog.getUpdateRequest().getType() == UpdateRequest.UpdateType.DELETE;
+                return updateLog.getType() == UpdateRequest.UpdateType.DELETE;
 
             default:
                 throw new IllegalArgumentException(
-                        String.format("Update type: %s is not supported!", this.getUpdateRequest().getType()));
+                        String.format("Update type: %s is not supported!", this.getType()));
         }
     }
 
@@ -110,11 +161,11 @@ public class UpdateLog {
     }
 
     private boolean isContinuousIndex(UpdateLog updateLog) {
-        int previousStart = this.getUpdateRequest().getStartPosition();
-        int previousEnd = this.getUpdateRequest().getEndPosition();
-        int currentStart = updateLog.getUpdateRequest().getStartPosition();
+        int previousStart = this.getStartPosition();
+        int previousEnd = this.getEndPosition();
+        int currentStart = updateLog.getStartPosition();
 
-        switch (this.getUpdateRequest().getType()) {
+        switch (this.getType()) {
             case APPEND:
             case DELETE:
                 return currentStart >= previousStart && currentStart <= previousEnd + 1;
@@ -122,18 +173,23 @@ public class UpdateLog {
             case APPEND_RANGE:
             case DELETE_RANGE:
                 return currentStart >= previousStart &&
-                        currentStart <= previousStart + this.getUpdateRequest().getContent().length();
+                        currentStart <= previousStart + this.getContent().length();
             default:
                 throw new IllegalArgumentException(
-                        String.format("Update type: %s is not supported!", updateLog.getUpdateRequest().getType()));
+                        String.format("Update type: %s is not supported!", updateLog.getType()));
         }
     }
 
     @Override
     public String toString() {
         return "UpdateLog{" +
-                "updateRequest=" + updateRequest +
+                "id=" + id +
                 ", timestamp=" + timestamp +
+                ", userEmail='" + userEmail + '\'' +
+                ", type=" + type +
+                ", content='" + content + '\'' +
+                ", startPosition=" + startPosition +
+                ", endPosition=" + endPosition +
                 '}';
     }
 }

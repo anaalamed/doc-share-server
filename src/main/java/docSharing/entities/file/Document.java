@@ -2,6 +2,7 @@ package docSharing.entities.file;
 
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
+import docSharing.repository.UpdateLogRepository;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -18,21 +19,24 @@ public class Document extends File {
     @Transient
     private final List<Integer> activeUsers;
 
-    @ElementCollection
-    private final List<UpdateLog> updateLogs;
+    @Transient
+    private UpdateLog lastUpdate;
+
+//    @OneToMany(targetEntity=UpdateLog.class)
+//    private final List<UpdateLog> updateLogs;
 
 
     public Document() {
         super();
         this.activeUsers = new ArrayList<>();
-        this.updateLogs = new ArrayList<>();
+//        this.updateLogs = new ArrayList<>();
     }
 
     public Document(User owner, int parentId, String title) {
         super(owner, parentId, title);
         this.content = new Content();
         this.activeUsers = new ArrayList<>();
-        this.updateLogs = new ArrayList<>();
+//        this.updateLogs = new ArrayList<>();
     }
 
     public void setContent(String content) {
@@ -43,12 +47,16 @@ public class Document extends File {
         return content.getContent();
     }
 
-    private void addUpdateToLog(UpdateLog updateLog) {
-        if (this.updateLogs.get(this.updateLogs.size() - 1).isContinuousLog(updateLog)) {
-            this.updateLogs.get(this.updateLogs.size() - 1).unite(updateLog);
-        } else {
-            this.updateLogs.add(updateLog);
-        }
+    public UpdateLog getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(UpdateLog lastUpdate) {
+        this.lastUpdate = lastUpdate;
+    }
+
+    public void updateLastLog(UpdateLog updateLog) {
+        this.lastUpdate.unite(updateLog);
     }
 
     public void addActiveUser(int userId) {
@@ -63,11 +71,15 @@ public class Document extends File {
         }
     }
 
+    public boolean isContinuousLog(UpdateLog updateLog) {
+        return this.lastUpdate != null && this.lastUpdate.isContinuousLog(updateLog);
+    }
+
     public boolean isActiveUser(int userId) {
         return this.activeUsers.contains(userId);
     }
 
-    public void updateContent(UpdateRequest updateRequest) {
+    public UpdateLog updateContent(UpdateRequest updateRequest) {
         switch (updateRequest.getType()) {
             case APPEND:
                 this.content.append(updateRequest.getContent(), updateRequest.getStartPosition());
@@ -86,7 +98,7 @@ public class Document extends File {
                 throw new IllegalArgumentException("Unsupported update request type!");
         }
 
-        addUpdateToLog(new UpdateLog(updateRequest, LocalDateTime.now()));
+        return new UpdateLog(updateRequest, LocalDateTime.now(), this);
     }
 
     @Override

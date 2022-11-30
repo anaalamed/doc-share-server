@@ -28,8 +28,10 @@ public class Content {
     }
 
     public String append(String content, int start) {
-        this.content = this.content.substring(0, start) + content
-                + this.content.substring(start + content.length());
+        this.content = this.content.substring(0, start) + content;
+        if (this.content.length() >= start + content.length()) {
+            this.content += this.content.substring(start + content.length());
+        }
 
         return this.content;
     }
@@ -43,13 +45,13 @@ public class Content {
 
     public String appendRange(String content, int start, int end) {
         this.content = this.content.substring(0, start) + content
-                + this.content.substring(end + 1);
+                + this.content.substring(end);
 
         return this.content;
     }
 
     public String deleteRange(int start, int end) {
-        this.content = this.content.substring(0, start) + this.content.substring(end + 1);
+        this.content = this.content.substring(0, start) + this.content.substring(end);
 
         return this.content;
     }

@@ -1,21 +1,20 @@
 package docSharing.service;
 
+import docSharing.entities.file.UpdateLog;
+import docSharing.repository.*;
 import docSharing.utils.Utils;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
 import docSharing.entities.file.Document;
 import docSharing.entities.file.Folder;
 import docSharing.entities.permission.Permission;
-import docSharing.repository.DocumentRepository;
-import docSharing.repository.FolderRepository;
-import docSharing.repository.PermissionRepository;
-import docSharing.repository.UserRepository;
 import docSharing.utils.GMailer;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,16 +27,31 @@ public class DocumentService {
     private final FolderRepository folderRepository;
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
+    private final UpdateLogRepository updateLogRepository;
 
     static Map<Integer,String> documentsContentCache = new HashMap<>();
     static Map<Integer,String> documentsContentDBCache = new HashMap<>();
 
+
     private DocumentService(DocumentRepository documentRepository, FolderRepository folderRepository,
-                            UserRepository userRepository, PermissionRepository permissionRepository) {
+                            UserRepository userRepository, PermissionRepository permissionRepository,
+                            UpdateLogRepository updateLogRepository) {
         this.documentRepository = documentRepository;
         this.folderRepository = folderRepository;
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
+        this.updateLogRepository = updateLogRepository;
+
+        this.loadCache();
+    }
+
+    private void loadCache() {
+        List<Document> allDocuments = documentRepository.findAll();
+
+        for (Document document : allDocuments) {
+            documentsContentCache.put(document.getId(), document.getContent());
+            documentsContentDBCache.put(document.getId(), document.getContent());
+        }
     }
 
     /**
@@ -90,10 +104,20 @@ public class DocumentService {
      * @param updateRequest
      */
     public void update(int documentId, UpdateRequest updateRequest) {
-        Document document = documentRepository.getReferenceById(documentId);
-        document.updateContent(updateRequest);
+        Optional<Document> document = documentRepository.findById(documentId);
+        if (document.isPresent()) {
+            UpdateLog updateLog = document.get().updateContent(updateRequest);
 
-        updateContentOnCache(documentId, document.getContent());
+            if (document.get().isContinuousLog(updateLog)) {
+                document.get().updateLastLog(updateLog);
+            } else {
+                if (document.get().getLastUpdate() != null) {
+                    updateLogRepository.save(document.get().getLastUpdate());
+                }
+                document.get().setLastUpdate(updateLog);
+            }
+            updateContentOnCache(documentId, document.get().getContent());
+        }
     }
 
     /**
@@ -235,7 +259,7 @@ public class DocumentService {
     }
 
     private void updateContentOnCache(int documentId, String content){
-        documentsContentCache.put(documentId,content);
+        documentsContentCache.put(documentId, content);
     }
 
     private void deleteFromCache(int documentID){
@@ -244,7 +268,7 @@ public class DocumentService {
     }
 
     @Scheduled(fixedDelay = 10000)
-    private void updateContentOnDB(){
+    public void updateContentOnDB(){
         documentsContentCache.forEach((key, value)->{
             if (!documentsContentDBCache.containsKey(key) || !value.equals(documentsContentDBCache.get(key))) {
                 updateContent(key, value);
