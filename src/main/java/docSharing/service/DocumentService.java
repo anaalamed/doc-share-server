@@ -1,23 +1,22 @@
 package docSharing.service;
 
+import docSharing.entities.file.File;
+import docSharing.entities.file.UpdateLog;
+import docSharing.repository.*;
 import docSharing.utils.Utils;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
 import docSharing.entities.file.Document;
 import docSharing.entities.file.Folder;
 import docSharing.entities.permission.Permission;
-import docSharing.repository.DocumentRepository;
-import docSharing.repository.FolderRepository;
-import docSharing.repository.PermissionRepository;
-import docSharing.repository.UserRepository;
 import docSharing.utils.GMailer;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static docSharing.utils.FilesUtils.*;
 
@@ -28,16 +27,26 @@ public class DocumentService {
     private final FolderRepository folderRepository;
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
+    private final UpdateLogRepository updateLogRepository;
+    private Map<Integer, Document> documentsCache;
 
-    static Map<Integer,String> documentsContentCache = new HashMap<>();
-    static Map<Integer,String> documentsContentDBCache = new HashMap<>();
 
     private DocumentService(DocumentRepository documentRepository, FolderRepository folderRepository,
-                            UserRepository userRepository, PermissionRepository permissionRepository) {
+                            UserRepository userRepository, PermissionRepository permissionRepository,
+                            UpdateLogRepository updateLogRepository) {
         this.documentRepository = documentRepository;
         this.folderRepository = folderRepository;
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
+        this.updateLogRepository = updateLogRepository;
+
+        this.loadDocumentCache();
+
+    }
+
+    private void loadDocumentCache() {
+        this.documentsCache = documentRepository.findAll().stream()
+                .collect(Collectors.toMap(File::getId, Function.identity()));
     }
 
     /**
@@ -77,11 +86,10 @@ public class DocumentService {
         Utils.validateTitle(parent, title);
 
         Document document = new Document(owner.get(), parentId, title);
-        updateContentOnCache(document.getId(), document.getContent());
-        Document savedDocument = documentRepository.save(document);
+        this.documentsCache.put(document.getId(), documentRepository.save(document));
         addDocumentToParentSubFiles(document);
 
-        return savedDocument;
+        return this.documentsCache.get(document.getId());
     }
 
     /**
@@ -90,20 +98,30 @@ public class DocumentService {
      * @param updateRequest
      */
     public void update(int documentId, UpdateRequest updateRequest) {
-        Document document = documentRepository.getReferenceById(documentId);
-        document.updateContent(updateRequest);
+        Document document = documentsCache.get(documentId);
+        UpdateLog updateLog = document.updateContent(updateRequest);
 
-        updateContentOnCache(documentId, document.getContent());
+        if (document.isContinuousLog(updateLog)) {
+            document.updateLastLog(updateLog);
+        } else {
+            if (document.getLastUpdate() != null) {
+                updateLogRepository.save(document.getLastUpdate());
+            }
+
+            document.setLastUpdate(updateLog);
+        }
+
+        documentRepository.save(document);
     }
 
     /**
      * Updates document's parent folder.
-     * @param id
+     * @param documentId
      * @param parentId
      * @return
      */
-    public Document setParent(int id, int parentId) {
-        Document document = documentRepository.getReferenceById(id);
+    public Document setParent(int documentId, int parentId) {
+        Document document = this.documentsCache.get(documentId);
         Optional<Folder> parentToBe = folderRepository.findById(parentId);
 
         Utils.validateTitle(parentToBe, document.getMetadata().getTitle());
@@ -118,12 +136,12 @@ public class DocumentService {
 
     /**
      * Updates document's title.
-     * @param id
+     * @param documentId
      * @param title
      * @return
      */
-    public Document setTitle(int id, String title) {
-        Document document = documentRepository.getReferenceById(id);
+    public Document setTitle(int documentId, String title) {
+        Document document = this.documentsCache.get(documentId);
         Optional<Folder> parent = folderRepository.findById(document.getMetadata().getParentId());
 
         Utils.validateTitle(parent, title);
@@ -140,9 +158,9 @@ public class DocumentService {
      * @return Success status
      */
     public boolean notifyShareByEmail(int documentId, String email, Permission permission) {
-        Document document = documentRepository.getReferenceById(documentId);
-
         try {
+            Document document = this.documentsCache.get(documentId);
+
             String subject = "Document shared with you: " + document.getMetadata().getTitle();
             String message = String.format("The document owner has invited you to %s the following document: %s",
                     permission.toString(), generateUrl(documentId));
@@ -159,7 +177,6 @@ public class DocumentService {
      * @return The document's URL
      */
     public String getUrl(int documentId) {
-        Document document = documentRepository.getReferenceById(documentId);
         return generateUrl(documentId);
     }
 
@@ -172,7 +189,7 @@ public class DocumentService {
      * @return The imported document
      */
     public Document importFile(String path, int ownerId, int parentID){
-        Document document = createDocument(ownerId,parentID, getFileName(path));
+        Document document = createDocument(ownerId, parentID, getFileName(path));
         updateContent(document.getId(), readFromFile(path));
 
         return document;
@@ -207,8 +224,8 @@ public class DocumentService {
         try {
             removeDocumentFromParentSubFiles(document.get());
             permissionRepository.deleteByDocumentId(documentId);
+            updateLogRepository.deleteByDocumentId(documentId);
             documentRepository.delete(document.get());
-            deleteFromCache(document.get().getId());
         } catch (Exception e) {
             return false;
         }
@@ -234,33 +251,14 @@ public class DocumentService {
         }
     }
 
-    private void updateContentOnCache(int documentId, String content){
-        documentsContentCache.put(documentId,content);
-    }
-
-    private void deleteFromCache(int documentID){
-        documentsContentCache.remove(documentID);
-        documentsContentDBCache.remove(documentID);
-    }
-
-    @Scheduled(fixedDelay = 10000)
-    private void updateContentOnDB(){
-        documentsContentCache.forEach((key, value)->{
-            if (!documentsContentDBCache.containsKey(key) || !value.equals(documentsContentDBCache.get(key))) {
-                updateContent(key, value);
-            }
-        });
-    }
-
-    private void updateContent(int documentId, String content){
-        Document updatedDocument = documentRepository.getReferenceById(documentId);
-        updatedDocument.setContent(content);
-        documentRepository.save(updatedDocument);
-        updateContentOnCache(documentId, content);
+    private void updateContent(int documentId, String content) {
+        Document document = this.documentsCache.get(documentId);
+        document.setContent(content);
+        documentRepository.save(document);
     }
 
     private String generateUrl(int documentId) {
-        Document document = documentRepository.getReferenceById(documentId);
+        Document document = this.documentsCache.get(documentId);
 
         String url = document.getMetadata().getTitle();
         int parentId = document.getMetadata().getParentId();

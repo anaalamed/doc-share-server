@@ -37,13 +37,13 @@ public class AuthController {
     public ResponseEntity<BaseResponse<UserDTO>> register(@RequestBody UserRequest userRequest, HttpServletRequest request) {
         logger.info("in register()");
 
-        if (userRequest.getEmail() == null || !InputValidation.isValidEmail(userRequest.getEmail())) {
+        if (!InputValidation.isValidEmail(userRequest.getEmail())) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid email address!"));
         }
-        if (userRequest.getName() == null || !InputValidation.isValidName(userRequest.getName())) {
+        if (!InputValidation.isValidName(userRequest.getName())) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid name!"));
         }
-        if (userRequest.getPassword() == null || !InputValidation.isValidPassword(userRequest.getPassword())) {
+        if (!InputValidation.isValidPassword(userRequest.getPassword())) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("Invalid password!"));
         }
 

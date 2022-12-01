@@ -88,12 +88,10 @@ public class DocumentController {
             return Utils.getNoEditPermissionResponse(shareRequest.getOwnerID());
         }
 
-        try {
-            shareToUsersList(retrieveShareRequestUsers(shareRequest), shareRequest);
-            return ResponseEntity.ok(BaseResponse.noContent(true, "Share by email succeed for all users"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure
-                    ("Share by email failed for some users. Nested error: " + e.getMessage()));
+        if (shareToUsersList(retrieveShareRequestUsers(shareRequest), shareRequest)) {
+            return ResponseEntity.ok(BaseResponse.noContent(true, "Share succeed for all users"));
+        } else {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Share by email failed for some users!"));
         }
     }
 
@@ -265,16 +263,26 @@ public class DocumentController {
      * Sends notification email if shareRequest.notify is true.
      * @param users
      * @param shareRequest
+     * @return success status
      */
-    private void shareToUsersList(List<UserDTO> users, ShareRequest shareRequest) {
-        for (UserDTO user : users) {
-            permissionService.updatePermission
-                    (shareRequest.getDocumentID(), user.getId(), shareRequest.getPermission());
+    private boolean shareToUsersList(List<UserDTO> users, ShareRequest shareRequest) {
+        boolean allSucceed = true;
 
-            if (shareRequest.isNotify()) {
-                documentService.notifyShareByEmail
-                        (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
+        for (UserDTO user : users) {
+            try {
+                permissionService.updatePermission
+                        (shareRequest.getDocumentID(), user.getId(), shareRequest.getPermission());
+
+                if (shareRequest.isNotify()) {
+                    documentService.notifyShareByEmail
+                            (shareRequest.getDocumentID(), user.getEmail(), shareRequest.getPermission());
+                }
+            } catch (Exception e) {
+                allSucceed = false;
+                logger.warn(e.getMessage());
             }
         }
+
+        return allSucceed;
     }
 }

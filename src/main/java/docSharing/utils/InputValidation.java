@@ -8,7 +8,7 @@ public class InputValidation {
 
     public static boolean isValidEmail(String email) {
         String regexPattern = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-        if (patternMatches(email, regexPattern)) {
+        if (email != null && patternMatches(email, regexPattern)) {
             return true;
         }
         return false;
@@ -16,7 +16,7 @@ public class InputValidation {
 
     public static boolean isValidName(String name) {
         String regexPattern = "[ a-zA-Z]{3,30}";                   // only letters. length: 3-30
-        if (patternMatches(name, regexPattern)) {
+        if (name != null && patternMatches(name, regexPattern)) {
             return true;
         }
         return false;
@@ -25,7 +25,7 @@ public class InputValidation {
     public static boolean isValidPassword(String password) {
         // Minimum eight characters, at least one letter and one number:
         String regexPattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
-        if (patternMatches(password, regexPattern)) {
+        if (password != null && patternMatches(password, regexPattern)) {
             return true;
         }
         return false;
