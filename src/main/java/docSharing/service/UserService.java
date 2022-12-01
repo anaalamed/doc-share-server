@@ -2,12 +2,18 @@ package docSharing.service;
 
 import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.User;
+import docSharing.entities.permission.Authorization;
+import docSharing.repository.DocumentRepository;
+import docSharing.repository.PermissionRepository;
 import docSharing.repository.UserRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static docSharing.utils.Utils.hashPassword;
 
@@ -15,11 +21,13 @@ import static docSharing.utils.Utils.hashPassword;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PermissionRepository permissionRepository;
 
     private static final Logger logger = LogManager.getLogger(UserService.class.getName());
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PermissionRepository permissionRepository) {
         this.userRepository = userRepository;
+        this.permissionRepository = permissionRepository;
     }
 
     public Optional<UserDTO> getByEmail(String email) {
@@ -79,7 +87,6 @@ public class UserService {
 
         return getUpdatedUser(id, lines);
     }
-
 
     // -------------------- help methods --------------------------- //
     private Optional<UserDTO> getUpdatedUser(int id, int lines) {
