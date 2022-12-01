@@ -264,10 +264,11 @@ public class DocumentService {
         String url = document.getMetadata().getTitle();
         int parentId = document.getMetadata().getParentId();
 
-        while (parentId > 0) {
-            Folder parent = folderRepository.getReferenceById(parentId);
-            url = parent.getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
-            parentId = parent.getMetadata().getParentId();
+        Optional<Folder> parent = folderRepository.findById(parentId);
+
+        while (parent.isPresent()) {
+            url = parent.get().getMetadata().getTitle() + FileSystems.getDefault().getSeparator() + url;
+            parent = folderRepository.findById(parent.get().getMetadata().getParentId());
         }
 
         return url;
