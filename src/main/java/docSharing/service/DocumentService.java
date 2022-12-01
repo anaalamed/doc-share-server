@@ -95,11 +95,10 @@ public class DocumentService {
 
     /**
      * Updates a document and adds a track log to its history.
-     * @param documentId
      * @param updateRequest
      */
-    public void update(int documentId, UpdateRequest updateRequest) {
-        Document document = documentsCache.get(documentId);
+    public void update(UpdateRequest updateRequest) {
+        Document document = documentsCache.get(updateRequest.getDocumentId());
         UpdateLog updateLog = document.updateContent(updateRequest);
 
         if (document.isContinuousLog(updateLog)) {
