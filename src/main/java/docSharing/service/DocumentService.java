@@ -86,7 +86,8 @@ public class DocumentService {
         Utils.validateTitle(parent, title);
 
         Document document = new Document(owner.get(), parentId, title);
-        this.documentsCache.put(document.getId(), documentRepository.save(document));
+        Document saved = documentRepository.save(document);
+        this.documentsCache.put(document.getId(), saved);
         addDocumentToParentSubFiles(document);
 
         return this.documentsCache.get(document.getId());
