@@ -93,6 +93,7 @@ public class Document extends File {
                 throw new IllegalArgumentException("Unsupported update request type!");
         }
 
+        this.getMetadata().setLastUpdated(LocalDateTime.now());
         return new UpdateLog(updateRequest, LocalDateTime.now(), this);
     }
 
