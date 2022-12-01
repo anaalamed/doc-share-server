@@ -50,10 +50,10 @@ public class DocumentEditController {
 
     @MessageMapping("/update")
     @SendTo("/topic/updates")
-    public UpdateRequest update(UpdateRequest updateRequest){
+    public UpdateRequest update(int documentId, UpdateRequest updateRequest){
         logger.info("in update()");
         logger.info("update message:" + updateRequest.getContent());
-        documentService.update(5, updateRequest);
+        documentService.update(documentId, updateRequest);
         return updateRequest;
     }
 
