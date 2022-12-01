@@ -1,13 +1,10 @@
 package docSharing.service;
 
-import docSharing.entities.file.File;
-import docSharing.entities.file.UpdateLog;
+import docSharing.entities.file.*;
 import docSharing.repository.*;
 import docSharing.utils.Utils;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.User;
-import docSharing.entities.file.Document;
-import docSharing.entities.file.Folder;
 import docSharing.entities.permission.Permission;
 import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
@@ -200,7 +197,7 @@ public class DocumentService {
      * @param documentId
      */
     public void exportFile(int documentId){
-        Document document = documentRepository.getReferenceById(documentId);
+        Document document = this.documentsCache.get(documentId);
 
         String filename = document.getMetadata().getTitle();
         String content = document.getContent();
@@ -210,22 +207,24 @@ public class DocumentService {
         writeToFile(content, filePath);
     }
 
+    public MetaData getMetadata(int documentId) {
+        Document document = this.documentsCache.get(documentId);
+        return document.getMetadata();
+    }
+
     /**
      * Deletes document from the database.
      * @param documentId
      * @return
      */
     public boolean delete(int documentId) {
-        Optional<Document> document = documentRepository.findById(documentId);
-        if (!document.isPresent()) {
-            return false;
-        }
-
         try {
-            removeDocumentFromParentSubFiles(document.get());
+            Document document = this.documentsCache.get(documentId);
+            removeDocumentFromParentSubFiles(document);
             permissionRepository.deleteByDocumentId(documentId);
             updateLogRepository.deleteByDocumentId(documentId);
-            documentRepository.delete(document.get());
+            documentRepository.delete(document);
+            this.documentsCache.remove(documentId);
         } catch (Exception e) {
             return false;
         }

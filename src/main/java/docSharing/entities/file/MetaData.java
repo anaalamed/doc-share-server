@@ -4,6 +4,7 @@ import docSharing.entities.User;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "metadata")
@@ -16,7 +17,7 @@ public class MetaData {
     @Column(name = "created")
     private final LocalDate created;
     @Column(name = "last_updated")
-    private LocalDate lastUpdated;
+    private LocalDateTime lastUpdated;
     @Column(name = "title")
     private String title;
     @ManyToOne
@@ -27,7 +28,7 @@ public class MetaData {
 
     private MetaData() {
         this.created = LocalDate.now();
-        this.lastUpdated =  LocalDate.now();
+        this.lastUpdated =  LocalDateTime.now();
     }
 
     public MetaData(File file, String title, User owner, int parentId) {
@@ -42,7 +43,7 @@ public class MetaData {
         return created;
     }
 
-    public LocalDate getLastUpdated() {
+    public LocalDateTime getLastUpdated() {
         return lastUpdated;
     }
 
@@ -54,7 +55,7 @@ public class MetaData {
         return owner;
     }
 
-    public void setLastUpdated(LocalDate lastUpdated) {
+    public void setLastUpdated(LocalDateTime lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 

@@ -1,6 +1,7 @@
 package docSharing.controller;
 
 import docSharing.controller.request.UpdateRequest;
+import docSharing.entities.file.MetaData;
 import docSharing.entities.permission.Permission;
 import docSharing.service.DocumentService;
 import docSharing.service.PermissionService;
@@ -55,6 +56,12 @@ public class DocumentEditController {
         logger.info("update message:" + updateRequest.getContent());
         documentService.update(updateRequest);
         return updateRequest;
+    }
+
+    @MessageMapping("/metadata")
+    @SendTo("/topic/metadata")
+    public MetaData getMetaData(int documentId) {
+        return documentService.getMetadata(documentId);
     }
 
     @MessageMapping("/hello")
