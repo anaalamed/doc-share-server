@@ -32,7 +32,7 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
 
         String email = user.getEmail();
         String subject = "Registration Confirmation";
-        String confirmationUrl = "localhost:8080/" + event.getAppUrl() + "auth/registrationConfirm?token=" + token;
+        String confirmationUrl = "http://localhost:8080/" + event.getAppUrl() + "auth/registrationConfirm?token=" + token;
 
         GMailer.sendMail(email, subject, "Please follow the link to activate your account: " + confirmationUrl);
     }
