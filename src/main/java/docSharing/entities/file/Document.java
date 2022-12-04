@@ -66,6 +66,10 @@ public class Document extends File {
         }
     }
 
+    public List<Integer> getActiveUsers() {
+        return this.activeUsers;
+    }
+
     public boolean isContinuousLog(UpdateLog updateLog) {
         return this.lastUpdate != null && this.lastUpdate.isContinuousLog(updateLog);
     }

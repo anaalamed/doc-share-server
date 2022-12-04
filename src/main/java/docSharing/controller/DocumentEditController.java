@@ -1,5 +1,6 @@
 package docSharing.controller;
 
+import docSharing.controller.request.JoinRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.file.MetaData;
 import docSharing.entities.permission.Permission;
@@ -12,6 +13,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+
+import java.util.List;
 
 @Controller
 @ComponentScan
@@ -28,17 +31,17 @@ public class DocumentEditController {
 
     // TODO: why join and leave are not REST calls? maybe update should be the only socket call?
     // and: check permissions
-    @MessageMapping("/join/{documentId}")
+    @MessageMapping("/join")
     @SendTo("/topic/join")
-    public boolean join(int documentId, int userId) {
+    public boolean join(JoinRequest joinData) {
         logger.info("in join()");
 
-        if(!permissionService.isAuthorized(documentId, userId, Permission.VIEWER)) {
+        if(!permissionService.isAuthorized(joinData.getDocumentId(), joinData.getUserId(), Permission.VIEWER)) {
             logger.warn("user is not authorized");
             return false;
         }
 
-        documentService.join(documentId, userId);
+        documentService.join(joinData.getDocumentId(), joinData.getUserId());
         return true;
     }
 
@@ -62,6 +65,12 @@ public class DocumentEditController {
     @SendTo("/topic/metadata")
     public MetaData getMetaData(int documentId) {
         return documentService.getMetadata(documentId);
+    }
+
+    @MessageMapping("/activeUsers")
+    @SendTo("/topic/activeUsers")
+    public List<String> getActiveUsers(int documentId) {
+        return documentService.getActiveUsers(documentId);
     }
 
     @MessageMapping("/hello")

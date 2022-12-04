@@ -1,6 +1,8 @@
 package docSharing.service;
 
+import docSharing.entities.DTO.DocumentDTO;
 import docSharing.entities.file.*;
+import docSharing.entities.permission.Authorization;
 import docSharing.repository.*;
 import docSharing.utils.Utils;
 import docSharing.controller.request.UpdateRequest;
@@ -10,6 +12,8 @@ import docSharing.utils.GMailer;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.FileSystems;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -48,21 +52,21 @@ public class DocumentService {
 
     /**
      * Adds userId to the document's activeUsers list.
-     * @param id
+     * @param documentId
      * @param userId
      */
-    public void join(int id, int userId) {
-        Document document = documentRepository.getReferenceById(id);
+    public void join(int documentId, int userId) {
+        Document document = documentsCache.get(documentId);
         document.addActiveUser(userId);
     }
 
     /**
      * Removes userId from the document's activeUsers list.
-     * @param id
+     * @param documentId
      * @param userId
      */
-    public void leave(int id, int userId) {
-        Document document = documentRepository.getReferenceById(id);
+    public void leave(int documentId, int userId) {
+        Document document = documentsCache.get(documentId);
         document.removeActiveUser(userId);
     }
 
@@ -210,6 +214,32 @@ public class DocumentService {
     public MetaData getMetadata(int documentId) {
         Document document = this.documentsCache.get(documentId);
         return document.getMetadata();
+    }
+
+    public List<String> getActiveUsers(int documentId) {
+        Document document = this.documentsCache.get(documentId);
+
+        List<String> activeUsersName = new ArrayList<>();
+        for (Integer userId : document.getActiveUsers()) {
+            Optional<User> activeUser = userRepository.findById(userId);
+            if (activeUser.isPresent()) {
+                activeUsersName.add(activeUser.get().getName());
+            }
+        }
+
+        return activeUsersName;
+    }
+
+    public List<DocumentDTO> getDocumentsByUser(int userId) {
+        List<Authorization> authorizations = this.permissionRepository.findByUser(userId);
+
+        List<DocumentDTO> userDocuments = new ArrayList<>();
+        for (Authorization authorization : authorizations) {
+            Document document = authorization.getDocument();
+            userDocuments.add(new DocumentDTO(document, generateUrl(document.getId())));
+        }
+
+        return userDocuments;
     }
 
     /**

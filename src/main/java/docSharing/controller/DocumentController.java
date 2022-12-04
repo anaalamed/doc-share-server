@@ -2,6 +2,7 @@ package docSharing.controller;
 
 import docSharing.controller.request.ShareRequest;
 import docSharing.controller.response.BaseResponse;
+import docSharing.entities.DTO.DocumentDTO;
 import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.file.*;
 import docSharing.entities.permission.Permission;
@@ -236,6 +237,13 @@ public class DocumentController {
 
         documentService.exportFile(documentId);
         return ResponseEntity.ok(BaseResponse.noContent(true, "Document was exported successfully."));
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path="/getDocumentsByUser")
+    public ResponseEntity<BaseResponse<List<DocumentDTO>>> getDocumentsByUser(@RequestHeader int userId) {
+        logger.info("in getDocumentsByUser()");
+
+        return ResponseEntity.ok(BaseResponse.success(documentService.getDocumentsByUser(userId)));
     }
 
     /**
