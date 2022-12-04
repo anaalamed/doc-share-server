@@ -68,6 +68,10 @@ public class DocumentService {
     public void leave(int documentId, int userId) {
         Document document = documentsCache.get(documentId);
         document.removeActiveUser(userId);
+
+        if (document.getLastUpdate() != null && document.getLastUpdate().getUserId() == userId) {
+            updateLogRepository.save(document.getLastUpdate());
+        }
     }
 
     /**

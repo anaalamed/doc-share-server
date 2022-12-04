@@ -22,11 +22,11 @@ public class UpdateLogTests {
     @Test
     @DisplayName("isContinuousLog() returns false when user is different")
     void isContinuousLog_DifferentUser_ReturnsFalse() {
-        String userEmail1 = "lior.mathan@gmail.com";
-        String userEmail2 = "tal@gmail.com";
+        int userId1 = 1;
+        int userId2 = 2;
         UpdateLog arbitraryLog = createArbitraryUpdateLog();
-        this.updateLog.setUserEmail(userEmail1);
-        arbitraryLog.setUserEmail(userEmail2);
+        this.updateLog.setUserId(userId1);
+        arbitraryLog.setUserId(userId2);
 
         assertFalse(this.updateLog.isContinuousLog(arbitraryLog),
                 "isContinuousLog() should return false for different users");
@@ -85,9 +85,9 @@ public class UpdateLogTests {
         this.updateLog.setType(UpdateRequest.UpdateType.APPEND);
         arbitraryLog.setType(UpdateRequest.UpdateType.APPEND);
 
-        String email = "lior.mathan@gmail.com";
-        this.updateLog.setUserEmail(email);
-        arbitraryLog.setUserEmail(email);
+        int userId = 1;
+        this.updateLog.setUserId(userId);
+        arbitraryLog.setUserId(userId);
 
         LocalDateTime timestamp1 = LocalDateTime.now();
         LocalDateTime timestamp2 = timestamp1.plusSeconds(3);
@@ -154,9 +154,9 @@ public class UpdateLogTests {
         log1.setType(type);
         log2.setType(type);
 
-        String email = "lior.mathan@gmail.com";
-        log1.setUserEmail(email);
-        log2.setUserEmail(email);
+        int userId = 1;
+        log1.setUserId(userId);
+        log2.setUserId(userId);
 
         LocalDateTime timestamp1 = LocalDateTime.now();
         LocalDateTime timestamp2 = timestamp1.plusSeconds(3);
@@ -177,7 +177,7 @@ public class UpdateLogTests {
 
     UpdateLog createArbitraryUpdateLog() {
         UpdateRequest updateRequest = new UpdateRequest.UpdateRequestBuilder()
-                .setUserEmail("lior.mathan@gmail.com").setType(UpdateRequest.UpdateType.APPEND)
+                .setUserId(1).setType(UpdateRequest.UpdateType.APPEND)
                 .setStartPosition(10).setEndPosition(12).build();
         return new UpdateLog(updateRequest, LocalDateTime.now(), null);
     }

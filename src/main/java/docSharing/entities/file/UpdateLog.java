@@ -15,7 +15,7 @@ public class UpdateLog {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private LocalDateTime timestamp;
-    private String userEmail;
+    private int userId;
     private UpdateRequest.UpdateType type;
     private String content;
     private int startPosition;
@@ -32,7 +32,7 @@ public class UpdateLog {
     }
 
     public UpdateLog(UpdateRequest updateRequest, LocalDateTime timestamp, Document document) {
-        this.userEmail = updateRequest.getUserEmail();
+        this.userId = updateRequest.getUserId();
         this.type = updateRequest.getType();
         this.content = updateRequest.getContent();
         this.startPosition = updateRequest.getStartPosition();
@@ -49,8 +49,8 @@ public class UpdateLog {
         this.timestamp = timestamp;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public int getUserId() {
+        return userId;
     }
 
     public UpdateRequest.UpdateType getType() {
@@ -69,8 +69,8 @@ public class UpdateLog {
         return endPosition;
     }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public void setType(UpdateRequest.UpdateType type) {
@@ -136,7 +136,7 @@ public class UpdateLog {
     }
 
     private boolean isSameUser(UpdateLog updateLog) {
-        return this.getUserEmail().equals(updateLog.getUserEmail());
+        return this.getUserId() == updateLog.getUserId();
     }
 
     private boolean isMatchingType(UpdateLog updateLog) {
@@ -182,13 +182,13 @@ public class UpdateLog {
     @Override
     public String toString() {
         return "UpdateLog{" +
-                "id=" + id +
-                ", timestamp=" + timestamp +
-                ", userEmail='" + userEmail + '\'' +
+                "timestamp=" + timestamp +
+                ", userId=" + userId +
                 ", type=" + type +
                 ", content='" + content + '\'' +
                 ", startPosition=" + startPosition +
                 ", endPosition=" + endPosition +
+                ", document=" + document +
                 '}';
     }
 }
