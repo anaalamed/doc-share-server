@@ -1,13 +1,13 @@
 package docSharing.controller.request;
 
-public class JoinRequest {
+public class AccessRequest {
     private int documentId;
     private int userId;
 
-    public JoinRequest() {
+    public AccessRequest() {
     }
 
-    public JoinRequest(int documentId, int userId) {
+    public AccessRequest(int documentId, int userId) {
         this.documentId = documentId;
         this.userId = userId;
     }

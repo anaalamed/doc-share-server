@@ -4,7 +4,6 @@ import docSharing.controller.request.ShareRequest;
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.DTO.DocumentDTO;
 import docSharing.entities.DTO.UserDTO;
-import docSharing.entities.file.*;
 import docSharing.entities.permission.Permission;
 import docSharing.service.AuthService;
 import docSharing.service.DocumentService;
@@ -48,7 +47,7 @@ public class DocumentController {
      * @return The document
      */
     @RequestMapping(method = RequestMethod.POST, path="/create")
-    public ResponseEntity<BaseResponse<Document>> create(@RequestHeader String token, @RequestHeader int ownerId,
+    public ResponseEntity<BaseResponse<DocumentDTO>> create(@RequestHeader String token, @RequestHeader int ownerId,
                                                          @RequestParam int parentId, @RequestParam String title) {
         logger.info("in create()");
 
@@ -57,10 +56,10 @@ public class DocumentController {
         }
 
         try {
-            Document document = documentService.createDocument(ownerId, parentId, title);
+            DocumentDTO document = documentService.createDocument(ownerId, parentId, title);
 
             if (document != null) {
-                permissionService.addPermission(document.getId(), ownerId, Permission.OWNER);
+                permissionService.addPermission(document.getDocumentId(), ownerId, Permission.OWNER);
                 return ResponseEntity.ok(BaseResponse.success(document));
             } else {
                 return ResponseEntity.badRequest().body(BaseResponse.failure("Error occurred while trying to create a document"));
@@ -89,10 +88,14 @@ public class DocumentController {
             return Utils.getNoEditPermissionResponse(shareRequest.getOwnerID());
         }
 
-        if (shareToUsersList(retrieveShareRequestUsers(shareRequest), shareRequest)) {
-            return ResponseEntity.ok(BaseResponse.noContent(true, "Share succeed for all users"));
-        } else {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Share by email failed for some users!"));
+        try {
+            if (shareToUsersList(retrieveShareRequestUsers(shareRequest), shareRequest)) {
+                return ResponseEntity.ok(BaseResponse.noContent(true, "Share succeed for all users"));
+            } else {
+                return ResponseEntity.badRequest().body(BaseResponse.failure("Share by email failed for some users!"));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
         }
     }
 
@@ -105,7 +108,11 @@ public class DocumentController {
     public ResponseEntity<BaseResponse<String>> getUrl(@RequestHeader int documentId) {
         logger.info("in getUrl()");
 
-        return ResponseEntity.ok(BaseResponse.success(documentService.getUrl(documentId)));
+        try {
+            return ResponseEntity.ok(BaseResponse.success(documentService.getUrl(documentId)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
     }
 
     /**
@@ -118,7 +125,7 @@ public class DocumentController {
      * @return The updated document
      */
     @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
-    public ResponseEntity<BaseResponse<Document>> setParent(@RequestHeader int documentId, @RequestHeader int userId,
+    public ResponseEntity<BaseResponse<DocumentDTO>> setParent(@RequestHeader int documentId, @RequestHeader int userId,
                                                             @RequestHeader String token, @RequestParam int parentId) {
         logger.info("in setParent()");
 
@@ -147,7 +154,7 @@ public class DocumentController {
      * @return The updated document
      */
     @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
-    public ResponseEntity<BaseResponse<Document>> setTitle(@RequestHeader int documentId, @RequestHeader int userId,
+    public ResponseEntity<BaseResponse<DocumentDTO>> setTitle(@RequestHeader int documentId, @RequestHeader int userId,
                                                            @RequestHeader String token, @RequestParam String title) {
         logger.info("in setTitle()");
 
@@ -188,11 +195,14 @@ public class DocumentController {
             return Utils.getNoEditPermissionResponse(userId);
         }
 
-        if (documentService.delete(documentId)) {
-            return ResponseEntity.ok(BaseResponse.noContent(true, "document was successfully deleted"));
-        }
-        else {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Document deletion failed"));
+        try {
+            if (documentService.delete(documentId)) {
+                return ResponseEntity.ok(BaseResponse.noContent(true, "document was successfully deleted"));
+            } else {
+                return ResponseEntity.badRequest().body(BaseResponse.failure("Document deletion failed"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
         }
     }
 
@@ -206,8 +216,8 @@ public class DocumentController {
      * @return The imported document
      */
     @RequestMapping(method = RequestMethod.POST, path="/import")
-    public ResponseEntity<BaseResponse<Document>> importFile(@RequestHeader String token, @RequestHeader int ownerId,
-                                                             @RequestHeader String filePath, @RequestHeader int parentId) {
+    public ResponseEntity<BaseResponse<DocumentDTO>> importFile(@RequestHeader String token, @RequestHeader int ownerId,
+                                                             @RequestParam String filePath, @RequestParam int parentId) {
 
         if (!authService.isAuthenticated(ownerId, token)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
@@ -235,15 +245,28 @@ public class DocumentController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        documentService.exportFile(documentId);
-        return ResponseEntity.ok(BaseResponse.noContent(true, "Document was exported successfully."));
+        try {
+            documentService.exportFile(documentId);
+            return ResponseEntity.ok(BaseResponse.noContent(true, "Document was exported successfully."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
     }
 
+    /**
+     *
+     * @param userId
+     * @return list of documents that the user corresponding to userId has permissions to.
+     */
     @RequestMapping(method = RequestMethod.GET, path="/getDocumentsByUser")
     public ResponseEntity<BaseResponse<List<DocumentDTO>>> getDocumentsByUser(@RequestHeader int userId) {
         logger.info("in getDocumentsByUser()");
 
-        return ResponseEntity.ok(BaseResponse.success(documentService.getDocumentsByUser(userId)));
+        try {
+            return ResponseEntity.ok(BaseResponse.success(documentService.getDocumentsByUser(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
+        }
     }
 
     /**

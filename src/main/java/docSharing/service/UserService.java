@@ -2,18 +2,13 @@ package docSharing.service;
 
 import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.User;
-import docSharing.entities.permission.Authorization;
-import docSharing.repository.DocumentRepository;
 import docSharing.repository.PermissionRepository;
 import docSharing.repository.UserRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static docSharing.utils.Utils.hashPassword;
 
@@ -88,7 +83,6 @@ public class UserService {
         return getUpdatedUser(id, lines);
     }
 
-    // -------------------- help methods --------------------------- //
     private Optional<UserDTO> getUpdatedUser(int id, int lines) {
         if (lines == 1) {
             Optional<User> user = userRepository.findById(id);
