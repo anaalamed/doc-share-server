@@ -55,9 +55,11 @@ public class DocumentService {
      * @param documentId
      * @param userId
      */
-    public void join(int documentId, int userId) {
+    public DocumentDTO join(int documentId, int userId) {
         Document document = documentsCache.get(documentId);
         document.addActiveUser(userId);
+
+        return new DocumentDTO(document, generateUrl(documentId));
     }
 
     /**

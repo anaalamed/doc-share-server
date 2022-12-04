@@ -7,6 +7,7 @@ public class DocumentDTO {
     private int documentId;
     private String url;
     private MetaData metaData;
+    private String content;
 
     public DocumentDTO() {
     }
@@ -21,6 +22,7 @@ public class DocumentDTO {
         this.documentId = document.getId();
         this.metaData = document.getMetadata();
         this.url = url;
+        this.content = document.getContent();
     }
 
     public int getDocumentId() {
@@ -33,5 +35,9 @@ public class DocumentDTO {
 
     public MetaData getMetaData() {
         return metaData;
+    }
+
+    public String getContent() {
+        return content;
     }
 }

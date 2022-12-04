@@ -2,14 +2,18 @@ package docSharing.controller;
 
 import docSharing.controller.request.AccessRequest;
 import docSharing.controller.request.UpdateRequest;
+import docSharing.controller.response.BaseResponse;
+import docSharing.entities.DTO.DocumentDTO;
 import docSharing.entities.file.MetaData;
 import docSharing.entities.permission.Permission;
 import docSharing.service.DocumentService;
 import docSharing.service.PermissionService;
+import docSharing.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -32,18 +36,19 @@ public class DocumentEditController {
 
     @MessageMapping("/join")
     @SendTo("/topic/join")
-    public void join(AccessRequest accessRequest) {
+    public ResponseEntity<BaseResponse<DocumentDTO>> join(AccessRequest accessRequest) {
         logger.info("in join()");
 
         if(!permissionService.isAuthorized(accessRequest.getDocumentId(), accessRequest.getUserId(), Permission.VIEWER)) {
             logger.warn("User is not authorized");
+            return Utils.getNoEditPermissionResponse(accessRequest.getUserId());
         }
 
         try {
-            documentService.join(accessRequest.getDocumentId(), accessRequest.getUserId());
-        } catch (Exception e) {
-            logger.error(String.format("Failed to join user #%d to document #%d",
-                    accessRequest.getUserId(), accessRequest.getDocumentId()));
+            return ResponseEntity.ok(BaseResponse.success(
+                    documentService.join(accessRequest.getDocumentId(), accessRequest.getUserId())));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure(e.getMessage()));
         }
     }
 
