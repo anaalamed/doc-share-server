@@ -207,7 +207,7 @@ public class DocumentController {
      */
     @RequestMapping(method = RequestMethod.POST, path="/import")
     public ResponseEntity<BaseResponse<Document>> importFile(@RequestHeader String token, @RequestHeader int ownerId,
-                                                             @RequestParam String filePath, @RequestParam int parentId) {
+                                                             @RequestHeader String filePath, @RequestHeader int parentId) {
 
         if (!authService.isAuthenticated(ownerId, token)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
