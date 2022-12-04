@@ -1,8 +1,6 @@
 package docSharing.controller.request;
 import docSharing.entities.permission.Permission;
-import docSharing.entities.User;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

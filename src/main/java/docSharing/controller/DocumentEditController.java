@@ -1,6 +1,6 @@
 package docSharing.controller;
 
-import docSharing.controller.request.JoinRequest;
+import docSharing.controller.request.AccessRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.entities.file.MetaData;
 import docSharing.entities.permission.Permission;
@@ -14,6 +14,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -29,35 +30,46 @@ public class DocumentEditController {
     public DocumentEditController() {
     }
 
-    // TODO: why join and leave are not REST calls? maybe update should be the only socket call?
-    // and: check permissions
     @MessageMapping("/join")
     @SendTo("/topic/join")
-    public boolean join(JoinRequest joinData) {
+    public void join(AccessRequest accessRequest) {
         logger.info("in join()");
 
-        if(!permissionService.isAuthorized(joinData.getDocumentId(), joinData.getUserId(), Permission.VIEWER)) {
-            logger.warn("user is not authorized");
-            return false;
+        if(!permissionService.isAuthorized(accessRequest.getDocumentId(), accessRequest.getUserId(), Permission.VIEWER)) {
+            logger.warn("User is not authorized");
         }
 
-        documentService.join(joinData.getDocumentId(), joinData.getUserId());
-        return true;
+        try {
+            documentService.join(accessRequest.getDocumentId(), accessRequest.getUserId());
+        } catch (Exception e) {
+            logger.error(String.format("Failed to join user #%d to document #%d",
+                    accessRequest.getUserId(), accessRequest.getDocumentId()));
+        }
     }
 
-    @MessageMapping("/leave") //TODO: add path 'leave' in client
-    public void leave(int documentId, int userId) {
+    @MessageMapping("/leave")
+    public void leave(AccessRequest accessRequest) {
         logger.info("in leave()");
 
-        documentService.leave(documentId, userId);
+        try {
+            documentService.leave(accessRequest.getDocumentId(), accessRequest.getUserId());
+        } catch (Exception e) {
+            logger.error(String.format("Failed to leave user #%d from document #%d",
+                    accessRequest.getUserId(), accessRequest.getDocumentId()));
+        }
     }
 
     @MessageMapping("/update")
     @SendTo("/topic/updates")
-    public UpdateRequest update(UpdateRequest updateRequest){
-        logger.info("in update()");
-        logger.info("update message:" + updateRequest.getContent());
-        documentService.update(updateRequest);
+    public UpdateRequest update(UpdateRequest updateRequest) {
+        logger.info("in update() - update message: " + updateRequest.getContent());
+
+        try {
+            documentService.update(updateRequest);
+        } catch (Exception e) {
+            logger.error("Error occurred while trying to update: " + e.getMessage());
+        }
+
         return updateRequest;
     }
 
@@ -70,11 +82,16 @@ public class DocumentEditController {
     @MessageMapping("/activeUsers")
     @SendTo("/topic/activeUsers")
     public List<String> getActiveUsers(int documentId) {
-        return documentService.getActiveUsers(documentId);
+        try {
+            return documentService.getActiveUsers(documentId);
+        } catch (Exception e) {
+            logger.error("Error occurred while trying to retrieve active users: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     @MessageMapping("/hello")
     public void greet(String name){
-        System.out.println("on connection name: "+name);
+        System.out.println("on connection name: " + name);
     }
 }

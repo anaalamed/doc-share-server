@@ -81,7 +81,7 @@ public class DocumentService {
      * @param title
      * @return The new document
      */
-    public Document createDocument(int ownerId, int parentId, String title) {
+    public DocumentDTO createDocument(int ownerId, int parentId, String title) {
         Optional<User> owner = userRepository.findById(ownerId);
         if (!owner.isPresent()) {
             throw new IllegalArgumentException(String.format("owner ID: %d was not found!", ownerId));
@@ -95,7 +95,8 @@ public class DocumentService {
         this.documentsCache.put(document.getId(), saved);
         addDocumentToParentSubFiles(document);
 
-        return this.documentsCache.get(document.getId());
+        Document savedDocument = this.documentsCache.get(document.getId());
+        return new DocumentDTO(savedDocument, generateUrl(savedDocument.getId()));
     }
 
     /**
@@ -125,7 +126,7 @@ public class DocumentService {
      * @param parentId
      * @return
      */
-    public Document setParent(int documentId, int parentId) {
+    public DocumentDTO setParent(int documentId, int parentId) {
         Document document = this.documentsCache.get(documentId);
         Optional<Folder> parentToBe = folderRepository.findById(parentId);
 
@@ -136,7 +137,7 @@ public class DocumentService {
         Document savedDocument = documentRepository.save(document);
         addDocumentToParentSubFiles(document);
 
-        return savedDocument;
+        return new DocumentDTO(savedDocument, generateUrl(savedDocument.getId()));
     }
 
     /**
@@ -145,14 +146,15 @@ public class DocumentService {
      * @param title
      * @return
      */
-    public Document setTitle(int documentId, String title) {
+    public DocumentDTO setTitle(int documentId, String title) {
         Document document = this.documentsCache.get(documentId);
         Optional<Folder> parent = folderRepository.findById(document.getMetadata().getParentId());
 
         Utils.validateTitle(parent, title);
         document.setTitle(title);
+        Document savedDocument = documentRepository.save(document);
 
-        return documentRepository.save(document);
+        return new DocumentDTO(savedDocument, generateUrl(savedDocument.getId()));
     }
 
     /**
@@ -193,11 +195,12 @@ public class DocumentService {
      * @param parentID
      * @return The imported document
      */
-    public Document importFile(String path, int ownerId, int parentID){
-        Document document = createDocument(ownerId, parentID, getFileName(path));
-        updateContent(document.getId(), readFromFile(path));
+    public DocumentDTO importFile(String path, int ownerId, int parentID) {
+        DocumentDTO document = createDocument(ownerId, parentID, getFileName(path));
+        updateContent(document.getDocumentId(), readFromFile(path));
 
-        return document;
+        Document savedDocument = this.documentsCache.get(document.getDocumentId());
+        return new DocumentDTO(savedDocument, generateUrl(savedDocument.getId()));
     }
 
     /**
