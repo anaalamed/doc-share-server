@@ -11,7 +11,7 @@ public class UpdateRequest {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private int documentId;
-    private String userEmail;
+    private int userId;
     private UpdateType type;
     private String content;
     private int startPosition;
@@ -22,7 +22,7 @@ public class UpdateRequest {
 
     public UpdateRequest(UpdateRequestBuilder builder) {
         this.documentId = builder.documentId;
-        this.userEmail = builder.userEmail;
+        this.userId = builder.userId;
         this.type = builder.type;
         this.content = builder.content;
         this.startPosition = builder.startPosition;
@@ -37,12 +37,12 @@ public class UpdateRequest {
         this.documentId = documentId;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public UpdateType getType() {
@@ -86,7 +86,7 @@ public class UpdateRequest {
 
     public static class UpdateRequestBuilder {
         private int documentId;
-        private String userEmail;
+        private int userId;
         private UpdateType type;
         private String content;
         private int startPosition;
@@ -100,8 +100,8 @@ public class UpdateRequest {
             return this;
         }
 
-        public UpdateRequestBuilder setUserEmail(String userEmail) {
-            this.userEmail = userEmail;
+        public UpdateRequestBuilder setUserId(int userId) {
+            this.userId = userId;
             return this;
         }
 
