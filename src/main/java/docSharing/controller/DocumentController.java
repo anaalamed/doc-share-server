@@ -45,7 +45,7 @@ public class DocumentController {
      * @param ownerId
      * @param parentId
      * @param title
-     * @return The document
+     * @return the new document's representation
      */
     @RequestMapping(method = RequestMethod.POST, path="/create")
     public ResponseEntity<BaseResponse<DocumentDTO>> create(@RequestHeader String token, @RequestHeader int ownerId,
@@ -180,7 +180,6 @@ public class DocumentController {
      * @param documentId
      * @param token
      * @param userId
-     * @return
      */
     @RequestMapping(method = RequestMethod.DELETE, path="/delete")
     public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int documentId, @RequestHeader String token,
