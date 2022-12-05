@@ -4,8 +4,8 @@ import docSharing.controller.request.AccessRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.DTO.DocumentDTO;
+import docSharing.entities.file.DocOperation;
 import docSharing.entities.file.MetaData;
-import docSharing.entities.permission.Permission;
 import docSharing.service.DocumentService;
 import docSharing.service.PermissionService;
 import docSharing.utils.Utils;
@@ -39,7 +39,7 @@ public class DocumentEditController {
     public ResponseEntity<BaseResponse<DocumentDTO>> join(AccessRequest accessRequest) {
         logger.info("in join()");
 
-        if(!permissionService.isAuthorized(accessRequest.getDocumentId(), accessRequest.getUserId(), Permission.VIEWER)) {
+        if(!permissionService.isAuthorized(accessRequest.getDocumentId(), accessRequest.getUserId(), DocOperation.JOIN)) {
             logger.warn("User is not authorized");
             return Utils.getNoEditPermissionResponse(accessRequest.getUserId());
         }

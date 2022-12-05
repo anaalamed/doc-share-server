@@ -4,6 +4,7 @@ import docSharing.controller.request.ShareRequest;
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.DTO.DocumentDTO;
 import docSharing.entities.DTO.UserDTO;
+import docSharing.entities.file.DocOperation;
 import docSharing.entities.permission.Permission;
 import docSharing.service.AuthService;
 import docSharing.service.DocumentService;
@@ -84,7 +85,7 @@ public class DocumentController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        if (!permissionService.isAuthorized(shareRequest.getDocumentID(), shareRequest.getOwnerID(), Permission.EDITOR)) {
+        if (!permissionService.isAuthorized(shareRequest.getDocumentID(), shareRequest.getOwnerID(), DocOperation.SHARE)) {
             return Utils.getNoEditPermissionResponse(shareRequest.getOwnerID());
         }
 
@@ -133,7 +134,7 @@ public class DocumentController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        if (!permissionService.isAuthorized(documentId, userId, Permission.EDITOR)) {
+        if (!permissionService.isAuthorized(documentId, userId, DocOperation.SET_PARENT)) {
             return Utils.getNoEditPermissionResponse(userId);
         }
 
@@ -162,7 +163,7 @@ public class DocumentController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        if (!permissionService.isAuthorized(documentId, userId, Permission.EDITOR)) {
+        if (!permissionService.isAuthorized(documentId, userId, DocOperation.SET_TITLE)) {
             return Utils.getNoEditPermissionResponse(userId);
         }
 
@@ -191,7 +192,7 @@ public class DocumentController {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
         }
 
-        if (!permissionService.isAuthorized(documentId, userId, Permission.EDITOR)) {
+        if (!permissionService.isAuthorized(documentId, userId, DocOperation.DELETE)) {
             return Utils.getNoEditPermissionResponse(userId);
         }
 
@@ -243,6 +244,10 @@ public class DocumentController {
 
         if (!authService.isAuthenticated(userId, token)) {
             return ResponseEntity.badRequest().body(BaseResponse.failure("User is not logged-in!"));
+        }
+
+        if (!permissionService.isAuthorized(documentId, userId, DocOperation.EXPORT)) {
+            return Utils.getNoEditPermissionResponse(userId);
         }
 
         try {
