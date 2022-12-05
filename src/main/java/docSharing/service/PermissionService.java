@@ -18,13 +18,19 @@ public class PermissionService {
     private final UserRepository userRepository;
     private final DocumentRepository documentRepository;
 
-    private PermissionService(PermissionRepository permissionRepository, UserRepository userRepository,
+      private PermissionService(PermissionRepository permissionRepository, UserRepository userRepository,
                               DocumentRepository documentRepository) {
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
         this.documentRepository = documentRepository;
     }
 
+    /**
+     * add permission to user to specific document by document id
+     * @param documentId
+     * @param userId
+     * @param permission
+     */
     public void addPermission(int documentId, int userId, Permission permission) {
         User user = userRepository.getReferenceById(userId);
         Document document = documentRepository.getReferenceById(documentId);
@@ -32,6 +38,11 @@ public class PermissionService {
         permissionRepository.save(authorization);
     }
 
+    /**
+     * remove permission to user to specific document by document id
+     * @param documentId
+     * @param userId
+     */
     public void deletePermission(int documentId, int userId) {
         List<Authorization> authorizations = permissionRepository.findByDocumentAndUser(documentId, userId);
         if (!authorizations.isEmpty()) {
@@ -39,6 +50,12 @@ public class PermissionService {
         }
     }
 
+    /**
+     * add/change permission to user to specific document by document id
+     * @param documentId
+     * @param userId
+     * @param permission
+     */
     public void updatePermission(int documentId, int userId, Permission permission) {
         if (isOwner(userId, documentId)) {
             throw new IllegalArgumentException("Cannot change owner's permissions!");
@@ -71,6 +88,12 @@ public class PermissionService {
                 authorizations.get(0).getPermission().ordinal() <= operation.getPermission().ordinal());
     }
 
+    /**
+     * check if user is owner of the document
+     * @param userId
+     * @param documentId
+     * @return true- is the user is owner /false.
+     */
     private boolean isOwner(int userId, int documentId) {
         Document document = documentRepository.getReferenceById(documentId);
         return document.getMetadata().getOwner().getId() == userId;
