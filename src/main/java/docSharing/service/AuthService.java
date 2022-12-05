@@ -43,6 +43,12 @@ public class AuthService {
         this.tokenRepository = tokenRepository;
     }
 
+    /**
+     * Create user if email isn't already exist
+     * @param userRequest
+     * @return the created User
+     * @throws SQLDataException
+     */
     public UserDTO createUser(UserRequest userRequest) throws SQLDataException {
         logger.info("in createUser()");
 
@@ -57,6 +63,11 @@ public class AuthService {
         return new UserDTO(user);
     }
 
+    /**
+     * Log In user to the system
+     * @param userRequest
+     * @return LoginData (user id, token) if successes
+     */
     public Optional<LoginData> login(UserRequest userRequest) {
         logger.info("in login()");
 
@@ -71,6 +82,11 @@ public class AuthService {
         return Optional.empty();
     }
 
+    /**
+     * Check if user is enabled
+     * @param userRequest
+     * @return true if user is enabled, otherwise - false
+     */
     public boolean isEnabledUser(UserRequest userRequest) {
         logger.info("in isEnabledUser()");
 
@@ -79,6 +95,12 @@ public class AuthService {
         return user.isPresent() && user.get().isEnabled();
     }
 
+    /**
+     * Check if user is authenticated
+     * @param userId
+     * @param token
+     * @return true if user is authenticated, otherwise - false
+     */
     public boolean isAuthenticated(int userId, String token) {
         return usersTokensMap.containsKey(userId) && usersTokensMap.get(userId).equals(token);
     }
@@ -86,24 +108,48 @@ public class AuthService {
 
     // ------------------ verification token ------------------ //
 
+    /**
+     * Publish event on new user registration
+     * @param createdUser
+     * @param locale
+     * @param appUrl
+     */
     public void publishRegistrationEvent(UserDTO createdUser, Locale locale, String appUrl) {
         User user = userRepository.getReferenceById(createdUser.getId());
         eventPublisher.publishEvent(new OnRegistrationCompleteEvent(user, locale, appUrl));
     }
 
+    /**
+     * Create Verification token and save it to DB
+     * @param user
+     * @param token
+     */
     public void createVerificationToken(User user, String token) {
         VerificationToken myToken = new VerificationToken(token, user);
         tokenRepository.save(myToken);
     }
 
+    /**
+     * Get Verification Token object by token string
+     * @param VerificationToken
+     * @return Verification Token
+     */
     public VerificationToken getVerificationToken(String VerificationToken) {
         return tokenRepository.findByToken(VerificationToken);
     }
 
+    /**
+     * Delete Verification Token object by token string
+     * @param token
+     */
     public void deleteVerificationToken(String token) {
         tokenRepository.deleteByToken(token);
     }
 
+    /**
+     * Schedule Delete expired verification tokens every period of time
+     * Schedule Delete not activated users by expired tokens every period of time
+     */
     @Scheduled(fixedRate = SCHEDULE)
     public void scheduleDeleteNotActivatedUsers() {
         logger.info("---------- in scheduleDeleteNotActivatedUsers-------------");

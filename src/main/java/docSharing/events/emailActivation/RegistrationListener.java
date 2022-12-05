@@ -25,6 +25,12 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
         }
     }
 
+    /**
+     * Create verification token for new registered user and save it to DB
+     * Send mail to user's email with confirmation link
+     * @param event
+     * @throws Exception
+     */
     private void confirmRegistration(OnRegistrationCompleteEvent event) throws Exception {
         User user = event.getUser();
         String token = UUID.randomUUID().toString();
