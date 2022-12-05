@@ -53,15 +53,6 @@ public class PermissionService {
         }
     }
 
-//    public boolean isAuthorized(int documentId, int userId, Permission permission) {
-//        List<Authorization> authorizations = permissionRepository.findByDocumentAndUser(documentId, userId);
-//        if (authorizations.isEmpty()) {
-//            return false;
-//        }
-//
-//        return (authorizations.get(0).getPermission().compareTo(permission) <= 0);
-//    }
-
     /**
      * Checks if the user is authorized for the required operation.
      * This method compares between Permission enum's ordinals.
