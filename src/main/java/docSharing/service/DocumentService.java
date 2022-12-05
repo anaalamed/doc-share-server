@@ -220,11 +220,21 @@ public class DocumentService {
         writeToFile(content, filePath);
     }
 
+    /**
+     *
+     * @param documentId
+     * @return document's metadata
+     */
     public MetaData getMetadata(int documentId) {
         Document document = this.documentsCache.get(documentId);
         return document.getMetadata();
     }
 
+    /**
+     *
+     * @param documentId
+     * @return document's active users
+     */
     public List<String> getActiveUsers(int documentId) {
         Document document = this.documentsCache.get(documentId);
 
@@ -239,6 +249,11 @@ public class DocumentService {
         return activeUsersName;
     }
 
+    /**
+     *
+     * @param userId
+     * @return all documents associated with userId.
+     */
     public List<DocumentDTO> getDocumentsByUser(int userId) {
         List<Authorization> authorizations = this.permissionRepository.findByUser(userId);
 
