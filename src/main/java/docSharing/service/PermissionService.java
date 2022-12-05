@@ -1,6 +1,7 @@
 package docSharing.service;
 
 import docSharing.entities.User;
+import docSharing.entities.file.DocOperation;
 import docSharing.entities.file.Document;
 import docSharing.entities.permission.Authorization;
 import docSharing.entities.permission.Permission;
@@ -52,13 +53,22 @@ public class PermissionService {
         }
     }
 
-    public boolean isAuthorized(int documentId, int userId, Permission permission) {
+    /**
+     * Checks if the user is authorized for the required operation.
+     * This method compares between Permission enum's ordinals.
+     * @param documentId
+     * @param userId
+     * @param operation
+     * @return true if the user has permissions for the required operation, else false.
+     */
+    public boolean isAuthorized(int documentId, int userId, DocOperation operation) {
         List<Authorization> authorizations = permissionRepository.findByDocumentAndUser(documentId, userId);
         if (authorizations.isEmpty()) {
             return false;
         }
 
-        return (authorizations.get(0).getPermission().compareTo(permission) <= 0);
+        return (operation.getPermission() == null ||
+                authorizations.get(0).getPermission().ordinal() <= operation.getPermission().ordinal());
     }
 
     private boolean isOwner(int userId, int documentId) {
