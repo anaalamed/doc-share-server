@@ -25,6 +25,14 @@ public class FolderController {
     public FolderController() {
     }
 
+    /**
+     * create new folder
+     * @param token
+     * @param ownerId
+     * @param parentId
+     * @param title
+     * @return Folder
+     */
     @RequestMapping(method = RequestMethod.POST, path="/create")
     public ResponseEntity<BaseResponse<Folder>> create(@RequestHeader String token, @RequestHeader int ownerId,
                                                        @RequestParam int parentId, @RequestParam String title) {
@@ -41,6 +49,14 @@ public class FolderController {
         }
     }
 
+    /**
+     * change folder parent to another parent.
+     * @param token
+     * @param folderId
+     * @param userId
+     * @param parentId
+     * @return savedFolder
+     */
     @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
     public ResponseEntity<BaseResponse<Folder>> setParent(@RequestHeader String token, @RequestHeader int folderId,
                                                           @RequestHeader int userId, @RequestParam int parentId) {
@@ -57,6 +73,14 @@ public class FolderController {
         }
     }
 
+    /**
+     * set new title to folder
+     * @param token
+     * @param folderId
+     * @param userId
+     * @param title
+     * @return updated folder
+     */
     @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
     public ResponseEntity<BaseResponse<Folder>> setTitle(@RequestHeader String token, @RequestHeader int folderId,
                                                          @RequestHeader int userId, @RequestParam String title) {
@@ -73,6 +97,13 @@ public class FolderController {
         }
     }
 
+    /**
+     * delete folder from DB
+     * @param folderId
+     * @param userId
+     * @param token
+     * @return
+     */
     @RequestMapping(method = RequestMethod.DELETE, path="/delete")
     public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int folderId, @RequestHeader int userId,
                                                      @RequestHeader String token) {
