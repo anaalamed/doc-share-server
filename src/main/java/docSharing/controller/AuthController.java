@@ -33,6 +33,12 @@ public class AuthController {
     private UserService userService;
     private static final Logger logger = LogManager.getLogger(AuthController.class.getName());
 
+    /**
+     * Creates a User and saves it to the database (enabled=0).
+     * @param userRequest
+     * @param request
+     * @return The user
+     */
     @RequestMapping(method = RequestMethod.POST, path = "/signup")
     public ResponseEntity<BaseResponse<UserDTO>> register(@RequestBody UserRequest userRequest, HttpServletRequest request) {
         logger.info("in register()");
@@ -56,6 +62,11 @@ public class AuthController {
         }
     }
 
+    /**
+     * User logs in to the system with Email and Password
+     * @param userRequest
+     * @return LoginData: user id and token
+     */
     @RequestMapping(method = RequestMethod.POST, path = "/login")
     public  ResponseEntity<BaseResponse<LoginData>> login(@RequestBody UserRequest userRequest) {
         logger.info("in login()");
@@ -72,6 +83,12 @@ public class AuthController {
                 orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("Failed to log in: Wrong Email or Password")));
     }
 
+    /**
+     * Confirm user's registration. (enabled=1)
+     * @param request
+     * @param token
+     * @return string success/failed
+     */
     @GetMapping("/registrationConfirm")
     public String confirmRegistration(WebRequest request, @RequestParam("token") String token) {
 

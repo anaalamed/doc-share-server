@@ -26,7 +26,11 @@ public class UserController {
     private PermissionService permissionService;
     private static final Logger logger = LogManager.getLogger(UserController.class.getName());
 
-
+    /**
+     * Find user by email
+     * @param email
+     * @return the User
+     */
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<BaseResponse<UserDTO>> getUserByEmail(@RequestParam String email) {
         logger.info("in getUserByEmail");
@@ -36,6 +40,12 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found!")));
     }
 
+    /**
+     * Delete user by Id
+     * @param userId
+     * @param token
+     * @return String success/failed
+     */
     @RequestMapping(method = RequestMethod.DELETE, value = "delete")
     public ResponseEntity<BaseResponse<String>> deleteUser(@RequestParam int userId, @RequestHeader String token){
         logger.debug("in deleteUser");
@@ -51,6 +61,13 @@ public class UserController {
         return ResponseEntity.badRequest().body(BaseResponse.failure("Failed to delete user #" + userId));
     }
 
+    /**
+     * Update user's name by Id
+     * @param userId
+     * @param token
+     * @param name
+     * @return the User
+     */
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{id}", params = "name")
     public ResponseEntity<BaseResponse<UserDTO>> updateName(@PathVariable("id") int userId, @RequestHeader String token,
                                                          @RequestParam String name) {
@@ -69,6 +86,13 @@ public class UserController {
                 orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
+    /**
+     * Update user's email by Id
+     * @param userId
+     * @param token
+     * @param newEmail
+     * @return the User
+     */
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{id}", params = "newEmail")
     public ResponseEntity<BaseResponse<UserDTO>> updateEmail(@PathVariable("id") int userId,
                                                              @RequestHeader String token, @RequestParam String newEmail) {
@@ -87,6 +111,13 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.badRequest().body(BaseResponse.failure("User not found")));
     }
 
+    /**
+     * Update user's password by Id
+     * @param userId
+     * @param token
+     * @param password
+     * @return the User
+     */
     @RequestMapping(method = RequestMethod.PATCH, value="/update/{id}", params = "password")
     public ResponseEntity<BaseResponse<UserDTO>> updatePassword(@PathVariable("id") int userId,
                                                                 @RequestHeader String token, @RequestParam String password) {
