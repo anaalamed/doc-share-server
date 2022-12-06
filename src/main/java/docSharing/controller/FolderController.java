@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
 @CrossOrigin
 @RequestMapping("/folder")
@@ -26,12 +24,12 @@ public class FolderController {
     }
 
     /**
-     * create new folder
+     * Creates a Folder and saves it to the database.
      * @param token
      * @param ownerId
      * @param parentId
      * @param title
-     * @return Folder
+     * @return the new folder's representation
      */
     @RequestMapping(method = RequestMethod.POST, path="/create")
     public ResponseEntity<BaseResponse<Folder>> create(@RequestHeader String token, @RequestHeader int ownerId,
@@ -50,12 +48,13 @@ public class FolderController {
     }
 
     /**
-     * change folder parent to another parent.
+     * Updates folder's parent folder.
+     * User must be logged in.
      * @param token
      * @param folderId
      * @param userId
      * @param parentId
-     * @return savedFolder
+     * @return the updated folder
      */
     @RequestMapping(method = RequestMethod.PATCH, path="/setParent")
     public ResponseEntity<BaseResponse<Folder>> setParent(@RequestHeader String token, @RequestHeader int folderId,
@@ -74,12 +73,14 @@ public class FolderController {
     }
 
     /**
-     * set new title to folder
+     * Updates document's title.
+     * The title must be unique in the containing folder and must not be empty.
+     * User must be logged in.
      * @param token
      * @param folderId
      * @param userId
      * @param title
-     * @return updated folder
+     * @return the updated folder
      */
     @RequestMapping(method = RequestMethod.PATCH, path="/setTitle")
     public ResponseEntity<BaseResponse<Folder>> setTitle(@RequestHeader String token, @RequestHeader int folderId,
@@ -98,11 +99,11 @@ public class FolderController {
     }
 
     /**
-     * delete folder from DB
+     * Deletes folder from the database.
+     * User must be logged in.
      * @param folderId
      * @param userId
      * @param token
-     * @return
      */
     @RequestMapping(method = RequestMethod.DELETE, path="/delete")
     public ResponseEntity<BaseResponse<Void>> delete(@RequestHeader int folderId, @RequestHeader int userId,
