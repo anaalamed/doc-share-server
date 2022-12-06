@@ -87,6 +87,10 @@ public class DocumentEditController {
     public UpdateRequest update(UpdateRequest updateRequest) {
         logger.info("in update() - update message: " + updateRequest.getContent());
 
+        if (!permissionService.isAuthorized(updateRequest.getDocumentId(), updateRequest.getUserId(), DocOperation.UPDATE)) {
+            return null;
+        }
+
         try {
             documentService.update(updateRequest);
         } catch (Exception e) {
