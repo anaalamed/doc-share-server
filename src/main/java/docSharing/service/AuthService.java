@@ -5,9 +5,9 @@ import docSharing.entities.DTO.UserDTO;
 import docSharing.entities.LoginData;
 import docSharing.entities.User;
 import docSharing.entities.VerificationToken;
+import docSharing.events.emailActivation.OnRegistrationCompleteEvent;
 import docSharing.repository.UserRepository;
 import docSharing.repository.VerificationTokenRepository;
-import docSharing.events.emailActivation.OnRegistrationCompleteEvent;
 import docSharing.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +16,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLDataException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -47,7 +46,7 @@ public class AuthService {
      * Create user if email isn't already exist
      * @param userRequest
      * @return the created User
-     * @throws SQLDataException
+     * @throws IllegalArgumentException
      */
     public UserDTO createUser(UserRequest userRequest) throws IllegalArgumentException {
         logger.info("in createUser()");
