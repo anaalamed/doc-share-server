@@ -49,11 +49,11 @@ public class AuthService {
      * @return the created User
      * @throws SQLDataException
      */
-    public UserDTO createUser(UserRequest userRequest) throws SQLDataException {
+    public UserDTO createUser(UserRequest userRequest) throws IllegalArgumentException {
         logger.info("in createUser()");
 
         if(userRepository.findByEmail(userRequest.getEmail()).isPresent()){
-            throw new SQLDataException(String.format("Email %s already exists!", userRequest.getEmail()));
+            throw new IllegalArgumentException(String.format("Email %s already exists!", userRequest.getEmail()));
         }
 
         logger.debug(userRequest);

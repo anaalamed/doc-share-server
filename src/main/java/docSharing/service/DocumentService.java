@@ -126,7 +126,7 @@ public class DocumentService {
      * Updates document's parent folder.
      * @param documentId
      * @param parentId
-     * @return
+     * @return the updated document representation
      */
     public DocumentDTO setParent(int documentId, int parentId) {
         Document document = this.documentsCache.get(documentId);
@@ -146,7 +146,7 @@ public class DocumentService {
      * Updates document's title.
      * @param documentId
      * @param title
-     * @return
+     * @return the updated document representation
      */
     public DocumentDTO setTitle(int documentId, String title) {
         Document document = this.documentsCache.get(documentId);
@@ -269,7 +269,7 @@ public class DocumentService {
     /**
      * Deletes document from the database.
      * @param documentId
-     * @return
+     * @return success status
      */
     public boolean delete(int documentId) {
         try {
@@ -286,6 +286,10 @@ public class DocumentService {
         return true;
     }
 
+    /**
+     * Adds document to its parent folder sub files.
+     * @param document
+     */
     private void addDocumentToParentSubFiles(Document document) {
         Optional<Folder> optionalParent = folderRepository.findById(document.getMetadata().getParentId());
 
@@ -295,6 +299,10 @@ public class DocumentService {
         }
     }
 
+    /**
+     * Removes document from its parent folder sub files.
+     * @param document
+     */
     private void removeDocumentFromParentSubFiles(Document document) {
         Optional<Folder> optionalParent = folderRepository.findById(document.getMetadata().getParentId());
 
@@ -304,12 +312,22 @@ public class DocumentService {
         }
     }
 
+    /**
+     * Sets the content of the document that corresponds to documentId to content.
+     * @param documentId
+     * @param content
+     */
     private void updateContent(int documentId, String content) {
         Document document = this.documentsCache.get(documentId);
         document.setContent(content);
         documentRepository.save(document);
     }
 
+    /**
+     * Generates the URL address of the document corresponds to documentId.
+     * @param documentId
+     * @return the document's URL.
+     */
     private String generateUrl(int documentId) {
         Document document = this.documentsCache.get(documentId);
 

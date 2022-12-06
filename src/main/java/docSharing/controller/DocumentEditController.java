@@ -4,8 +4,8 @@ import docSharing.controller.request.AccessRequest;
 import docSharing.controller.request.UpdateRequest;
 import docSharing.controller.response.BaseResponse;
 import docSharing.entities.DTO.DocumentDTO;
+import docSharing.entities.file.DocOperation;
 import docSharing.entities.file.MetaData;
-import docSharing.entities.permission.Permission;
 import docSharing.service.DocumentService;
 import docSharing.service.PermissionService;
 import docSharing.utils.Utils;
@@ -34,12 +34,19 @@ public class DocumentEditController {
     public DocumentEditController() {
     }
 
+    /**
+     * Checks whether the user is authorized to the file.
+     * Inserts the user into the document - on active user (service- join function)
+     *
+     * @param accessRequest (documentId, userId)
+     * @return DocumentDTO if success- else error message
+     */
     @MessageMapping("/join")
     @SendTo("/topic/join")
     public ResponseEntity<BaseResponse<DocumentDTO>> join(AccessRequest accessRequest) {
         logger.info("in join()");
 
-        if(!permissionService.isAuthorized(accessRequest.getDocumentId(), accessRequest.getUserId(), Permission.VIEWER)) {
+        if(!permissionService.isAuthorized(accessRequest.getDocumentId(), accessRequest.getUserId(), DocOperation.JOIN)) {
             logger.warn("User is not authorized");
             return Utils.getNoEditPermissionResponse(accessRequest.getUserId());
         }
@@ -52,6 +59,11 @@ public class DocumentEditController {
         }
     }
 
+    /**
+     * Removes the user from the document.
+     *
+     * @param accessRequest ( documentId, userId).
+     */
     @MessageMapping("/leave")
     public void leave(AccessRequest accessRequest) {
         logger.info("in leave()");
@@ -64,6 +76,12 @@ public class DocumentEditController {
         }
     }
 
+    /**
+     * get update request and update the content on DB.
+     * @param updateRequest (documentId, userId, type, content, startPosition, endPosition)
+     *
+     * @return the updateRequest
+     */
     @MessageMapping("/update")
     @SendTo("/topic/updates")
     public UpdateRequest update(UpdateRequest updateRequest) {
@@ -78,12 +96,21 @@ public class DocumentEditController {
         return updateRequest;
     }
 
+    /**
+     * @param documentId
+     * @return the metadata of document (title, owner, parentId, created, last update)
+     */
     @MessageMapping("/metadata")
     @SendTo("/topic/metadata")
     public MetaData getMetaData(int documentId) {
         return documentService.getMetadata(documentId);
     }
 
+    /**
+     *
+     * @param documentId
+     * @return list of all active user of document by document id.
+     */
     @MessageMapping("/activeUsers")
     @SendTo("/topic/activeUsers")
     public List<String> getActiveUsers(int documentId) {
@@ -95,6 +122,10 @@ public class DocumentEditController {
         }
     }
 
+    /**
+     * print message when docket connection is open
+     * @param name
+     */
     @MessageMapping("/hello")
     public void greet(String name){
         System.out.println("on connection name: " + name);

@@ -57,8 +57,8 @@ public class AuthController {
             UserDTO createdUser = authService.createUser(userRequest);
             authService.publishRegistrationEvent(createdUser, request.getLocale(), request.getContextPath());
             return ResponseEntity.ok(BaseResponse.success(createdUser));
-        } catch (SQLDataException e) {
-            return ResponseEntity.badRequest().body(BaseResponse.failure("Email already exists"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(BaseResponse.failure("Error occurred: " + e.getMessage()));
         }
     }
 
